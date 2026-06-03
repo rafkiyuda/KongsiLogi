@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Search, Filter, Plus, Package, AlertTriangle, Timer, Loader2 } from 'lucide-react'
+import { Search, Filter, Plus, Package, AlertTriangle, Timer, Loader2, Sparkles, X, TrendingDown } from 'lucide-react'
 import Link from 'next/link'
 import { formatCurrency, getDaysUntilExpiry, getExpiryStatus, statusColors, statusLabels } from '@/lib/utils'
 import { PRODUCT_CATEGORIES } from '@/lib/constants'
@@ -11,6 +11,7 @@ interface Product {
   name: string
   category: string
   unit: string
+  imageUrl?: string | null
   sellingPrice: number
   minimumStock: number
   shelfLifeDays: number
@@ -36,6 +37,44 @@ export default function InventoryPage() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  
+  const [aiRecommendations, setAiRecommendations] = useState<any[]>([])
+  const [aiLoading, setAiLoading] = useState(false)
+  const [showAiModal, setShowAiModal] = useState(false)
+
+  const handleGetDemandForecasting = async () => {
+    setAiLoading(true)
+    setShowAiModal(true)
+    try {
+      const lowStockProducts = products.filter(p => p.stockStatus === 'critical' || p.stockStatus === 'attention').map(p => ({
+        productId: p.id,
+        productName: p.name,
+        category: p.category,
+        remainingStock: p.totalRemaining,
+        minimumStock: p.minimumStock
+      }))
+
+      if (lowStockProducts.length === 0) {
+        setAiRecommendations([])
+        setAiLoading(false)
+        return
+      }
+
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'demand_forecasting', data: lowStockProducts })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setAiRecommendations(data.result)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setAiLoading(false)
+    }
+  }
 
   useEffect(() => {
     fetchProducts()
@@ -68,14 +107,21 @@ export default function InventoryPage() {
             Kelola stok produk dan batch barang
           </p>
         </div>
-        <Link
-          href="/dashboard/inventory/add"
-          className="btn-primary flex items-center gap-2 text-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Tambah Produk
-        </Link>
+        <div className="flex gap-2">
+          <button 
+            onClick={handleGetDemandForecasting}
+            className="btn-primary flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white border-0 shadow-lg shadow-teal-500/30"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span className="hidden sm:inline">Demand Forecasting AI</span>
+          </button>
+          <Link href="/dashboard/inventory/new" className="btn-primary flex items-center gap-2 bg-[var(--accent-primary)]">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Tambah Produk</span>
+          </Link>
+        </div>
       </div>
+
 
       {/* Search & Filter */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -119,7 +165,7 @@ export default function InventoryPage() {
             return (
               <div
                 key={product.id}
-                className="glass-card p-4 cursor-pointer animate-fade-in"
+                className="bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md p-4 cursor-pointer transition-all animate-fade-in"
                 style={{ animationDelay: `${idx * 0.05}s` }}
                 onClick={() => setSelectedProduct(selectedProduct?.id === product.id ? null : product)}
               >
@@ -133,13 +179,20 @@ export default function InventoryPage() {
 
                 {/* Product info */}
                 <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: 'var(--bg-tertiary)' }}>
-                    <Package className="w-6 h-6" style={{ color: 'var(--text-secondary)' }} />
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden bg-slate-100 border border-slate-200">
+                    {product.imageUrl ? (
+                      <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <img 
+                        src={`https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=100&h=100&q=80&blur=2`} 
+                        alt="Generic Product" 
+                        className="w-full h-full object-cover opacity-80"
+                      />
+                    )}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{product.name}</h3>
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{product.category}</p>
+                    <h3 className="font-bold truncate text-slate-800">{product.name}</h3>
+                    <p className="text-xs text-slate-500">{product.category}</p>
                   </div>
                 </div>
 
@@ -198,18 +251,64 @@ export default function InventoryPage() {
                         )
                       })}
                     </div>
-                    <Link
-                      href={`/dashboard/inventory/${product.id}`}
-                      className="mt-3 block text-center text-xs font-medium py-2 rounded-lg"
-                      style={{ background: 'rgba(14, 165, 233, 0.1)', color: 'var(--accent-primary)' }}
-                    >
-                      Lihat Detail Lengkap →
-                    </Link>
                   </div>
                 )}
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* AI Modal */}
+      {showAiModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="glass-card w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden shadow-2xl ring-1 ring-teal-500/20">
+            <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border-light)' }}>
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-teal-500" />
+                <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>AI Demand Forecasting</h2>
+              </div>
+              <button onClick={() => setShowAiModal(false)} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto flex-1">
+              {aiLoading ? (
+                <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-teal-500/20 rounded-full blur-xl animate-pulse"></div>
+                    <TrendingDown className="w-10 h-10 text-teal-500 animate-bounce relative z-10" />
+                  </div>
+                  <p className="text-sm font-medium animate-pulse" style={{ color: 'var(--text-secondary)' }}>Gemini AI sedang memprediksi kebutuhan restock...</p>
+                </div>
+              ) : aiRecommendations.length > 0 ? (
+                <div className="space-y-4">
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Berdasarkan analisis sisa stok dan batas minimum, berikut saran restock otomatis dari AI:</p>
+                  {aiRecommendations.map((rec, i) => (
+                    <div key={i} className="p-4 rounded-xl border flex flex-col gap-2" style={{ background: 'var(--bg-tertiary)', borderColor: 'var(--border-light)' }}>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>ID Produk: {rec.productId}</p>
+                          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{rec.recommendation}</p>
+                        </div>
+                        <div className={`font-bold px-3 py-1 rounded-full text-sm shrink-0 shadow-sm border ${
+                          rec.urgencyLevel.toLowerCase().includes('kritis') ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' :
+                          rec.urgencyLevel.toLowerCase().includes('tinggi') ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800' :
+                          'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
+                        }`}>
+                          {rec.urgencyLevel}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p style={{ color: 'var(--text-secondary)' }}>Tidak ada produk dengan stok menipis (kritis/perhatian) saat ini. Inventaris terpantau aman.</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import {
   ShoppingCart, Plus, Loader2, Check, X, Package as PackageIcon,
-  Clock, CheckCircle, XCircle, Truck, ArrowLeft
+  Clock, CheckCircle, XCircle, Truck, ArrowLeft, Sparkles, Star
 } from 'lucide-react'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { PURCHASE_STATUS_LABELS } from '@/lib/constants'
@@ -43,8 +43,39 @@ export default function ProcurementPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [newItems, setNewItems] = useState<Array<{productId: string; quantity: string; estimatedPrice: string}>>([])
   const [newNotes, setNewNotes] = useState('')
+  const [selectedSupplierId, setSelectedSupplierId] = useState('')
   const [creating, setCreating] = useState(false)
   const [processing, setProcessing] = useState<string | null>(null)
+
+  const [aiRecommendations, setAiRecommendations] = useState<any[]>([])
+  const [aiLoading, setAiLoading] = useState(false)
+  const [showAiModal, setShowAiModal] = useState(false)
+
+  const mockSuppliers = [
+    { id: 'S001', name: 'PT Maju Jaya Abadi', priceLevel: 'Sedang', consistency: 'Tinggi', onTimeRate: '95%' },
+    { id: 'S002', name: 'CV Berkah Tani', priceLevel: 'Rendah', consistency: 'Sedang', onTimeRate: '80%' },
+    { id: 'S003', name: 'Koperasi Tunas Harapan', priceLevel: 'Tinggi', consistency: 'Sangat Tinggi', onTimeRate: '99%' }
+  ]
+
+  const handleGetSupplierScoring = async () => {
+    setAiLoading(true)
+    setShowAiModal(true)
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'supplier_scoring', data: mockSuppliers })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setAiRecommendations(data.result)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setAiLoading(false)
+    }
+  }
 
   useEffect(() => {
     fetchData()
@@ -71,6 +102,7 @@ export default function ProcurementPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           notes: newNotes,
+          supplierId: selectedSupplierId || null,
           items: newItems.map(i => ({
             productId: i.productId,
             quantity: Number(i.quantity),
@@ -82,6 +114,7 @@ export default function ProcurementPage() {
       setShowCreate(false)
       setNewItems([])
       setNewNotes('')
+      setSelectedSupplierId('')
       fetchData()
     } catch {
       alert('Gagal membuat permintaan')
@@ -248,6 +281,19 @@ export default function ProcurementPage() {
 
             <div className="space-y-4">
               <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Pemasok (Supplier)</label>
+                  <button onClick={handleGetSupplierScoring} className="text-xs font-bold text-purple-500 hover:text-purple-600 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" /> Rekomendasi AI
+                  </button>
+                </div>
+                <select className="input-field" value={selectedSupplierId} onChange={e => setSelectedSupplierId(e.target.value)}>
+                  <option value="">-- Pilih Supplier --</option>
+                  {mockSuppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Catatan</label>
                 <input className="input-field" placeholder="Catatan pembelian..." value={newNotes} onChange={e => setNewNotes(e.target.value)} />
               </div>
@@ -284,6 +330,63 @@ export default function ProcurementPage() {
                 {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4" />}
                 {creating ? 'Membuat...' : 'Kirim Permintaan'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Modal */}
+      {showAiModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="glass-card w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden shadow-2xl ring-1 ring-purple-500/20">
+            <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border-light)' }}>
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-500" />
+                <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>AI Supplier Scoring</h2>
+              </div>
+              <button onClick={() => setShowAiModal(false)} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto flex-1">
+              {aiLoading ? (
+                <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-xl animate-pulse"></div>
+                    <Star className="w-10 h-10 text-purple-500 animate-bounce relative z-10" />
+                  </div>
+                  <p className="text-sm font-medium animate-pulse" style={{ color: 'var(--text-secondary)' }}>Gemini AI sedang menyeleksi profil pemasok...</p>
+                </div>
+              ) : aiRecommendations.length > 0 ? (
+                <div className="space-y-4">
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Berdasarkan analisis riwayat konsistensi dan harga, berikut rekomendasi pemasok terbaik:</p>
+                  {aiRecommendations.map((rec, i) => {
+                    const supplier = mockSuppliers.find(s => s.id === rec.supplierId)
+                    return (
+                      <div key={i} className="p-4 rounded-xl border flex flex-col gap-3 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/10 transition-colors" 
+                           style={{ background: 'var(--bg-tertiary)', borderColor: 'var(--border-light)' }}
+                           onClick={() => { setSelectedSupplierId(rec.supplierId); setShowAiModal(false) }}>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>
+                              {supplier?.name || rec.supplierId}
+                            </p>
+                            <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{rec.recommendationReason}</p>
+                          </div>
+                          <div className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 font-bold px-3 py-1.5 rounded-xl text-lg flex items-center gap-1 shrink-0 border border-purple-200 dark:border-purple-800">
+                            <Star className="w-4 h-4 fill-current" /> {rec.score}
+                          </div>
+                        </div>
+                        <div className="text-xs text-purple-500 font-medium text-right">Klik untuk memilih pemasok ini →</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p style={{ color: 'var(--text-secondary)' }}>Gagal memuat rekomendasi.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

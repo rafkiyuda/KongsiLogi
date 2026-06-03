@@ -17,6 +17,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.4.0",
     "@prisma/client": "^6.19.3",
     "@radix-ui/react-alert-dialog": "^1.1.15",

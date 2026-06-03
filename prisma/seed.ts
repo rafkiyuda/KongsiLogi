@@ -86,18 +86,18 @@ async function main() {
 
   // ===== PRODUCTS =====
   const products = await Promise.all([
-    prisma.product.create({ data: { name: 'Bayam', category: 'Sayuran Daun', unit: 'kg', sellingPrice: 12000, costPrice: 8000, minimumStock: 15, shelfLifeDays: 5 } }),
-    prisma.product.create({ data: { name: 'Kangkung', category: 'Sayuran Daun', unit: 'kg', sellingPrice: 10000, costPrice: 6000, minimumStock: 15, shelfLifeDays: 4 } }),
-    prisma.product.create({ data: { name: 'Sawi Putih', category: 'Sayuran Daun', unit: 'kg', sellingPrice: 15000, costPrice: 10000, minimumStock: 10, shelfLifeDays: 7 } }),
-    prisma.product.create({ data: { name: 'Selada', category: 'Sayuran Daun', unit: 'kg', sellingPrice: 18000, costPrice: 12000, minimumStock: 8, shelfLifeDays: 5 } }),
-    prisma.product.create({ data: { name: 'Cabai Merah', category: 'Bumbu Dapur', unit: 'kg', sellingPrice: 45000, costPrice: 30000, minimumStock: 10, shelfLifeDays: 10 } }),
-    prisma.product.create({ data: { name: 'Cabai Rawit', category: 'Bumbu Dapur', unit: 'kg', sellingPrice: 50000, costPrice: 35000, minimumStock: 8, shelfLifeDays: 10 } }),
-    prisma.product.create({ data: { name: 'Tomat', category: 'Sayuran Buah', unit: 'kg', sellingPrice: 14000, costPrice: 9000, minimumStock: 15, shelfLifeDays: 7 } }),
-    prisma.product.create({ data: { name: 'Wortel', category: 'Sayuran Akar', unit: 'kg', sellingPrice: 16000, costPrice: 10000, minimumStock: 12, shelfLifeDays: 14 } }),
-    prisma.product.create({ data: { name: 'Brokoli', category: 'Sayuran Buah', unit: 'kg', sellingPrice: 25000, costPrice: 18000, minimumStock: 8, shelfLifeDays: 7 } }),
-    prisma.product.create({ data: { name: 'Buncis', category: 'Sayuran Buah', unit: 'kg', sellingPrice: 13000, costPrice: 8000, minimumStock: 10, shelfLifeDays: 6 } }),
-    prisma.product.create({ data: { name: 'Kol', category: 'Sayuran Daun', unit: 'kg', sellingPrice: 8000, costPrice: 5000, minimumStock: 20, shelfLifeDays: 10 } }),
-    prisma.product.create({ data: { name: 'Daun Bawang', category: 'Bumbu Dapur', unit: 'kg', sellingPrice: 20000, costPrice: 14000, minimumStock: 5, shelfLifeDays: 5 } }),
+    prisma.product.create({ data: { name: 'Bayam', category: 'Sayuran Daun', unit: 'kg', sellingPrice: 12000, costPrice: 8000, minimumStock: 15, shelfLifeDays: 5, imageUrl: 'https://loremflickr.com/400/400/spinach,vegetable/all' } }),
+    prisma.product.create({ data: { name: 'Kangkung', category: 'Sayuran Daun', unit: 'kg', sellingPrice: 10000, costPrice: 6000, minimumStock: 15, shelfLifeDays: 4, imageUrl: 'https://loremflickr.com/400/400/water+spinach,vegetable/all' } }),
+    prisma.product.create({ data: { name: 'Sawi Putih', category: 'Sayuran Daun', unit: 'kg', sellingPrice: 15000, costPrice: 10000, minimumStock: 10, shelfLifeDays: 7, imageUrl: 'https://loremflickr.com/400/400/napa+cabbage/all' } }),
+    prisma.product.create({ data: { name: 'Selada', category: 'Sayuran Daun', unit: 'kg', sellingPrice: 18000, costPrice: 12000, minimumStock: 8, shelfLifeDays: 5, imageUrl: 'https://loremflickr.com/400/400/lettuce,leaf/all' } }),
+    prisma.product.create({ data: { name: 'Cabai Merah', category: 'Bumbu Dapur', unit: 'kg', sellingPrice: 45000, costPrice: 30000, minimumStock: 10, shelfLifeDays: 10, imageUrl: 'https://loremflickr.com/400/400/red+chili,pepper/all' } }),
+    prisma.product.create({ data: { name: 'Cabai Rawit', category: 'Bumbu Dapur', unit: 'kg', sellingPrice: 50000, costPrice: 35000, minimumStock: 8, shelfLifeDays: 10, imageUrl: 'https://loremflickr.com/400/400/chili,spicy/all' } }),
+    prisma.product.create({ data: { name: 'Tomat', category: 'Sayuran Buah', unit: 'kg', sellingPrice: 14000, costPrice: 9000, minimumStock: 15, shelfLifeDays: 7, imageUrl: 'https://loremflickr.com/400/400/tomato,ripe/all' } }),
+    prisma.product.create({ data: { name: 'Wortel', category: 'Sayuran Akar', unit: 'kg', sellingPrice: 16000, costPrice: 10000, minimumStock: 12, shelfLifeDays: 14, imageUrl: 'https://loremflickr.com/400/400/carrot,vegetable/all' } }),
+    prisma.product.create({ data: { name: 'Brokoli', category: 'Sayuran Buah', unit: 'kg', sellingPrice: 25000, costPrice: 18000, minimumStock: 8, shelfLifeDays: 7, imageUrl: 'https://loremflickr.com/400/400/broccoli/all' } }),
+    prisma.product.create({ data: { name: 'Buncis', category: 'Sayuran Buah', unit: 'kg', sellingPrice: 13000, costPrice: 8000, minimumStock: 10, shelfLifeDays: 6, imageUrl: 'https://loremflickr.com/400/400/green+beans,vegetable/all' } }),
+    prisma.product.create({ data: { name: 'Kol', category: 'Sayuran Daun', unit: 'kg', sellingPrice: 8000, costPrice: 5000, minimumStock: 20, shelfLifeDays: 10, imageUrl: 'https://loremflickr.com/400/400/cabbage/all' } }),
+    prisma.product.create({ data: { name: 'Daun Bawang', category: 'Bumbu Dapur', unit: 'kg', sellingPrice: 20000, costPrice: 14000, minimumStock: 5, shelfLifeDays: 5, imageUrl: 'https://loremflickr.com/400/400/scallion,onion/all' } }),
   ])
 
   console.log('✅ Products created')

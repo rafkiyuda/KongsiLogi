@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Snowflake, Thermometer, Package, AlertTriangle, Loader2, Timer } from 'lucide-react'
+import { Snowflake, Thermometer, Package, AlertTriangle, Loader2, Timer, Sparkles, X } from 'lucide-react'
 import { getDaysUntilExpiry, statusColors, statusLabels } from '@/lib/utils'
 
 interface Batch {
@@ -19,6 +19,42 @@ export default function ColdStoragePage() {
   const [batches, setBatches] = useState<Batch[]>([])
   const [loading, setLoading] = useState(true)
   const [capacity, setCapacity] = useState({ used: 0, total: 1000 })
+  const [aiRecommendations, setAiRecommendations] = useState<any[]>([])
+  const [aiLoading, setAiLoading] = useState(false)
+  const [showAiModal, setShowAiModal] = useState(false)
+
+  const handleGetSmartPricing = async () => {
+    setAiLoading(true)
+    setShowAiModal(true)
+    try {
+      const expiringBatches = batches.filter(b => getDaysUntilExpiry(b.expiryDate) <= 7).map(b => ({
+        batchId: b.batchCode,
+        productName: b.product.name,
+        remainingQuantity: b.remainingQuantity,
+        daysUntilExpiry: getDaysUntilExpiry(b.expiryDate)
+      }))
+
+      if (expiringBatches.length === 0) {
+        setAiRecommendations([])
+        setAiLoading(false)
+        return
+      }
+
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'smart_pricing', data: expiringBatches })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setAiRecommendations(data.result)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setAiLoading(false)
+    }
+  }
 
   useEffect(() => {
     fetch('/api/cold-storage')
@@ -46,9 +82,18 @@ export default function ColdStoragePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Cold Storage</h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Monitor gudang pendingin dan kondisi penyimpanan</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Cold Storage</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Monitor gudang pendingin dan kondisi penyimpanan</p>
+        </div>
+        <button 
+          onClick={handleGetSmartPricing}
+          className="btn-primary flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white border-0 shadow-lg shadow-purple-500/30"
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Smart Pricing AI</span>
+        </button>
       </div>
 
       {/* Capacity Overview */}
@@ -144,6 +189,55 @@ export default function ColdStoragePage() {
         <div className="text-center py-20">
           <Package className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
           <p style={{ color: 'var(--text-secondary)' }}>Cold storage kosong</p>
+        </div>
+      )}
+
+      {/* AI Modal */}
+      {showAiModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="glass-card w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden shadow-2xl ring-1 ring-purple-500/20">
+            <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border-light)' }}>
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-500" />
+                <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>AI Smart Pricing Recommendations</h2>
+              </div>
+              <button onClick={() => setShowAiModal(false)} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto flex-1">
+              {aiLoading ? (
+                <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-xl animate-pulse"></div>
+                    <Sparkles className="w-10 h-10 text-purple-500 animate-bounce relative z-10" />
+                  </div>
+                  <p className="text-sm font-medium animate-pulse" style={{ color: 'var(--text-secondary)' }}>Gemini AI sedang menganalisis stok kadaluarsa...</p>
+                </div>
+              ) : aiRecommendations.length > 0 ? (
+                <div className="space-y-4">
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Berdasarkan analisis umur simpan, berikut saran diskon untuk produk yang akan segera kadaluarsa:</p>
+                  {aiRecommendations.map((rec, i) => (
+                    <div key={i} className="p-4 rounded-xl border flex flex-col gap-2" style={{ background: 'var(--bg-tertiary)', borderColor: 'var(--border-light)' }}>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Batch: {rec.batchId}</p>
+                          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{rec.reasoning}</p>
+                        </div>
+                        <div className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 font-bold px-3 py-1 rounded-full text-sm shrink-0 shadow-sm border border-red-200 dark:border-red-800">
+                          Diskon {rec.suggestedDiscountPercent}%
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p style={{ color: 'var(--text-secondary)' }}>Tidak ada produk yang mendekati masa kadaluarsa dalam 7 hari ke depan. Penyimpanan terpantau aman.</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

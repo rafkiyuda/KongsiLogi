@@ -12,15 +12,19 @@
   --text-muted: #64748b;
   --text-inverse: #ffffff;
   
-  --border-light: #f1f5f9; /* Very subtle borders */
+  --border-light: #e2e8f0; /* Slate 200 for visible borders */
   --border-focus: #3b82f6;
+  --border-color: #e2e8f0;
   
   --brand-primary: #3b82f6; /* Modern Blue */
   --brand-hover: #2563eb;
+  --accent-primary: #3b82f6;
   
   --status-success: #10b981;
   --status-warning: #f59e0b;
   --status-error: #ef4444;
+  
+  --bg-tertiary: #f8fafc; /* Slate 50 for items inside card */
   
   /* Modern styling: large radius, soft shadow */
   --shadow-modern: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 0 3px rgba(0,0,0,0.02);
@@ -146,4 +150,95 @@ body {
 /* Keep glass classes neutral if they exist */
 .glass, .animate-fade-in {
   backdrop-filter: blur(10px);
+}
+
+/* UI Overhaul styles */
+.glass-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-modern);
+  box-shadow: var(--shadow-modern);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card:hover {
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 8px 16px;
+  background-color: var(--brand-primary);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--brand-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 8px 16px;
+  background-color: #ffffff;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-light);
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #f8fafc;
+  color: var(--text-primary);
+  border-color: #cbd5e1;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.input-field {
+  width: 100%;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  padding: 0 12px;
+  background-color: #ffffff;
+  color: var(--text-primary);
+  outline: none;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.input-field:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.input-field::placeholder {
+  color: var(--text-muted);
 }

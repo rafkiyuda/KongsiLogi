@@ -42,8 +42,8 @@ export default function SalesChart({ data }: SalesChartProps) {
             fontWeight: 600,
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
           }}
-          formatter={(value: number) => [formatCurrency(value), 'Revenue']}
-          labelFormatter={(label: string) => `Date: ${label}`}
+          formatter={(value: any) => [formatCurrency(Number(value || 0)), 'Revenue']}
+          labelFormatter={(label: any) => `Date: ${label}`}
           cursor={{ fill: '#f1f5f9' }}
         />
         <Bar

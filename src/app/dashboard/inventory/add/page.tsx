@@ -12,7 +12,7 @@ export default function AddProductPage() {
   const [error, setError] = useState('')
   const [form, setForm] = useState({
     name: '',
-    category: PRODUCT_CATEGORIES[0],
+    category: PRODUCT_CATEGORIES[0] as string,
     unit: 'kg',
     sellingPrice: '',
     costPrice: '',

@@ -1,0 +1,269 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  WAREHOUSE_STAFF
+  CASHIER
+  VIEWER
+}
+
+enum InventoryStatus {
+  SAFE
+  ATTENTION
+  CRITICAL
+  EXPIRED
+}
+
+enum PurchaseRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  RECEIVED
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  QRIS
+}
+
+enum AuditStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum NotificationType {
+  LOW_STOCK
+  EXPIRY_ALERT
+  PURCHASE_APPROVAL
+  AUDIT_REMINDER
+  PAYMENT_DUE
+  GENERAL
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(WAREHOUSE_STAFF)
+  avatarUrl String?  @map("avatar_url")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  purchaseRequestsCreated  PurchaseRequest[] @relation("RequestedBy")
+  purchaseRequestsApproved PurchaseRequest[] @relation("ApprovedBy")
+  salesTransactions        SalesTransaction[]
+  stockAudits              StockAudit[]
+  notifications            Notification[]
+
+  @@map("users")
+}
+
+model Cooperative {
+  id                  String   @id @default(cuid())
+  name                String
+  businessType        String   @map("business_type")
+  location            String
+  coldStorageCapacity Float    @default(1000) @map("cold_storage_capacity")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  @@map("cooperatives")
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  name          String
+  category      String
+  unit          String   @default("kg")
+  sellingPrice  Float    @map("selling_price")
+  costPrice     Float    @default(0) @map("cost_price")
+  minimumStock  Float    @default(10) @map("minimum_stock")
+  shelfLifeDays Int      @default(7) @map("shelf_life_days")
+  imageUrl      String?  @map("image_url")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  inventoryBatches      InventoryBatch[]
+  purchaseRequestItems  PurchaseRequestItem[]
+  salesTransactionItems SalesTransactionItem[]
+  stockAuditItems       StockAuditItem[]
+
+  @@map("products")
+}
+
+model Supplier {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  address   String?
+  email     String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  inventoryBatches InventoryBatch[]
+  purchaseRequests PurchaseRequest[]
+
+  @@map("suppliers")
+}
+
+model InventoryBatch {
+  id                String          @id @default(cuid())
+  productId         String          @map("product_id")
+  supplierId        String?         @map("supplier_id")
+  batchCode         String          @unique @map("batch_code")
+  qrCode            String?         @map("qr_code")
+  quantity          Float
+  remainingQuantity Float           @map("remaining_quantity")
+  unit              String          @default("kg")
+  receivedDate      DateTime        @map("received_date")
+  expiryDate        DateTime        @map("expiry_date")
+  storageLocation   String          @default("Cold Storage A") @map("storage_location")
+  status            InventoryStatus @default(SAFE)
+  notes             String?
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  product               Product                @relation(fields: [productId], references: [id])
+  supplier              Supplier?              @relation(fields: [supplierId], references: [id])
+  salesTransactionItems SalesTransactionItem[]
+  stockAuditItems       StockAuditItem[]
+
+  @@index([productId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([expiryDate])
+  @@map("inventory_batches")
+}
+
+model PurchaseRequest {
+  id                  String                @id @default(cuid())
+  requestedById       String                @map("requested_by_id")
+  approvedById        String?               @map("approved_by_id")
+  supplierId          String?               @map("supplier_id")
+  status              PurchaseRequestStatus @default(PENDING)
+  notes               String?
+  rejectionReason     String?               @map("rejection_reason")
+  totalEstimatedPrice Float                 @default(0) @map("total_estimated_price")
+  createdAt           DateTime              @default(now()) @map("created_at")
+  approvedAt          DateTime?             @map("approved_at")
+
+  requestedBy User      @relation("RequestedBy", fields: [requestedById], references: [id])
+  approvedBy  User?     @relation("ApprovedBy", fields: [approvedById], references: [id])
+  supplier    Supplier? @relation(fields: [supplierId], references: [id])
+  items       PurchaseRequestItem[]
+
+  @@index([requestedById])
+  @@index([status])
+  @@map("purchase_requests")
+}
+
+model PurchaseRequestItem {
+  id                String @id @default(cuid())
+  purchaseRequestId String @map("purchase_request_id")
+  productId         String @map("product_id")
+  quantity          Float
+  unit              String @default("kg")
+  estimatedPrice    Float  @default(0) @map("estimated_price")
+
+  purchaseRequest PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
+  product         Product         @relation(fields: [productId], references: [id])
+
+  @@index([purchaseRequestId])
+  @@map("purchase_request_items")
+}
+
+model SalesTransaction {
+  id              String        @id @default(cuid())
+  cashierId       String        @map("cashier_id")
+  transactionCode String        @unique @map("transaction_code")
+  totalAmount     Float         @map("total_amount")
+  paymentMethod   PaymentMethod @default(CASH) @map("payment_method")
+  customerName    String?       @map("customer_name")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  cashier User                   @relation(fields: [cashierId], references: [id])
+  items   SalesTransactionItem[]
+
+  @@index([cashierId])
+  @@index([createdAt])
+  @@map("sales_transactions")
+}
+
+model SalesTransactionItem {
+  id                 String @id @default(cuid())
+  salesTransactionId String @map("sales_transaction_id")
+  productId          String @map("product_id")
+  batchId            String @map("batch_id")
+  quantity           Float
+  price              Float
+  subtotal           Float
+
+  salesTransaction SalesTransaction @relation(fields: [salesTransactionId], references: [id], onDelete: Cascade)
+  product          Product          @relation(fields: [productId], references: [id])
+  batch            InventoryBatch   @relation(fields: [batchId], references: [id])
+
+  @@index([salesTransactionId])
+  @@map("sales_transaction_items")
+}
+
+model StockAudit {
+  id          String      @id @default(cuid())
+  auditDate   DateTime    @map("audit_date")
+  conductedBy String      @map("conducted_by")
+  status      AuditStatus @default(SCHEDULED)
+  notes       String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  conductor User             @relation(fields: [conductedBy], references: [id])
+  items     StockAuditItem[]
+
+  @@index([conductedBy])
+  @@index([status])
+  @@map("stock_audits")
+}
+
+model StockAuditItem {
+  id               String @id @default(cuid())
+  stockAuditId     String @map("stock_audit_id")
+  productId        String @map("product_id")
+  batchId          String @map("batch_id")
+  systemQuantity   Float  @map("system_quantity")
+  physicalQuantity Float? @map("physical_quantity")
+  difference       Float?
+  note             String?
+
+  stockAudit StockAudit     @relation(fields: [stockAuditId], references: [id], onDelete: Cascade)
+  product    Product        @relation(fields: [productId], references: [id])
+  batch      InventoryBatch @relation(fields: [batchId], references: [id])
+
+  @@index([stockAuditId])
+  @@map("stock_audit_items")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  title     String
+  message   String
+  type      NotificationType @default(GENERAL)
+  isRead    Boolean          @default(false) @map("is_read")
+  actionUrl String?          @map("action_url")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}

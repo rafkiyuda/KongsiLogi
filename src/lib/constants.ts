@@ -1,0 +1,91 @@
+export const APP_NAME = 'KongsiLogi'
+export const APP_DESCRIPTION = 'Platform Manajemen Inventory & Rantai Pasok Koperasi'
+export const COOPERATIVE_NAME = 'Koperasi Melati Jaya'
+
+export const ROLES = {
+  ADMIN: 'ADMIN',
+  WAREHOUSE_STAFF: 'WAREHOUSE_STAFF',
+  CASHIER: 'CASHIER',
+  VIEWER: 'VIEWER',
+} as const
+
+export const ROLE_LABELS: Record<string, string> = {
+  ADMIN: 'Admin Koperasi',
+  WAREHOUSE_STAFF: 'Staf Gudang',
+  CASHIER: 'Kasir',
+  VIEWER: 'Viewer',
+}
+
+export const INVENTORY_STATUS = {
+  SAFE: 'SAFE',
+  ATTENTION: 'ATTENTION',
+  CRITICAL: 'CRITICAL',
+  EXPIRED: 'EXPIRED',
+} as const
+
+export const PURCHASE_STATUS = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  RECEIVED: 'RECEIVED',
+} as const
+
+export const PURCHASE_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'Menunggu',
+  APPROVED: 'Disetujui',
+  REJECTED: 'Ditolak',
+  RECEIVED: 'Diterima',
+}
+
+export const AUDIT_STATUS = {
+  SCHEDULED: 'SCHEDULED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+} as const
+
+export const AUDIT_STATUS_LABELS: Record<string, string> = {
+  SCHEDULED: 'Dijadwalkan',
+  IN_PROGRESS: 'Sedang Berjalan',
+  COMPLETED: 'Selesai',
+}
+
+export const PAYMENT_METHODS = [
+  { value: 'CASH', label: 'Tunai' },
+  { value: 'TRANSFER', label: 'Transfer' },
+  { value: 'QRIS', label: 'QRIS' },
+] as const
+
+export const PRODUCT_CATEGORIES = [
+  'Sayuran Daun',
+  'Sayuran Buah',
+  'Sayuran Akar',
+  'Bumbu Dapur',
+  'Rempah',
+  'Lainnya',
+] as const
+
+export const PRODUCT_UNITS = [
+  { value: 'kg', label: 'Kilogram (kg)' },
+  { value: 'gram', label: 'Gram (g)' },
+  { value: 'ikat', label: 'Ikat' },
+  { value: 'buah', label: 'Buah' },
+  { value: 'pack', label: 'Pack' },
+] as const
+
+export const STORAGE_LOCATIONS = [
+  'Cold Storage A',
+  'Cold Storage B',
+  'Cold Storage C',
+  'Rak Terbuka',
+] as const
+
+export const NOTIFICATION_TYPES = {
+  LOW_STOCK: 'LOW_STOCK',
+  EXPIRY_ALERT: 'EXPIRY_ALERT',
+  PURCHASE_APPROVAL: 'PURCHASE_APPROVAL',
+  AUDIT_REMINDER: 'AUDIT_REMINDER',
+  PAYMENT_DUE: 'PAYMENT_DUE',
+  GENERAL: 'GENERAL',
+} as const
+
+export const COLD_STORAGE_CAPACITY = 1000 // kg

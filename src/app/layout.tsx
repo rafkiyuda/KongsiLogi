@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { FloatingWhatsApp } from "@/components/layout/FloatingWhatsApp";
+import Script from "next/script";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -34,6 +35,12 @@ export default function RootLayout({
       <body className="antialiased">
         {children}
         <FloatingWhatsApp />
+        {/* Midtrans Snap JS */}
+        <Script
+          src="https://app.sandbox.midtrans.com/snap/snap.js"
+          data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
+          strategy="beforeInteractive"
+        />
       </body>
     </html>
   );

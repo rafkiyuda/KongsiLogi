@@ -3,8 +3,16 @@
 import { useEffect, useState, useCallback } from 'react'
 import {
   ShoppingCart, Plus, Minus, Trash2, CreditCard, Loader2,
-  Package, Search, Receipt, Check, Banknote
+  Package, Search, FileText, ArrowLeft, Receipt, Check, Banknote
 } from 'lucide-react'
+
+// Declare Midtrans Snap global
+declare global {
+  interface Window {
+    snap: any;
+  }
+}
+
 import { formatCurrency } from '@/lib/utils'
 
 interface Product {
@@ -120,6 +128,71 @@ export default function POSPage() {
     setProcessing(true)
 
     try {
+      // 1. If NON-CASH payment, generate Midtrans Token first
+      if (paymentMethod !== 'CASH') {
+        const orderId = `POS-${Date.now()}` // Temporary order ID for Snap
+        
+        const snapRes = await fetch('/api/pos/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            order_id: orderId,
+            gross_amount: total,
+            item_details: cart.map(i => ({
+              id: i.productId,
+              price: i.price,
+              quantity: i.quantity,
+              name: i.productName.substring(0, 50)
+            })),
+            customer_details: {
+              first_name: 'Customer',
+              last_name: 'KongsiLogi'
+            }
+          })
+        })
+
+        const snapData = await snapRes.json()
+        
+        if (!snapRes.ok || !snapData.token) {
+          alert('Gagal membuat transaksi Midtrans. Cek API Keys di .env')
+          setProcessing(false)
+          return
+        }
+
+        // Open Snap Popup
+        window.snap.pay(snapData.token, {
+          onSuccess: function(result: any) {
+            // Payment success, proceed to save order in DB
+            finalizeOrder()
+          },
+          onPending: function(result: any) {
+            alert('Menunggu pembayaran selesai.')
+            setProcessing(false)
+          },
+          onError: function(result: any) {
+            alert('Pembayaran gagal.')
+            setProcessing(false)
+          },
+          onClose: function() {
+            alert('Anda menutup popup sebelum menyelesaikan pembayaran.')
+            setProcessing(false)
+          }
+        })
+      } else {
+        // Cash payment, directly save to DB
+        finalizeOrder()
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Terjadi kesalahan')
+      setProcessing(false)
+    }
+  }
+
+  // 2. Finalize order in Database (called after Cash or successful Midtrans payment)
+  const finalizeOrder = async () => {
+    try {
+      setProcessing(true)
       const res = await fetch('/api/pos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -137,6 +210,7 @@ export default function POSPage() {
       if (!res.ok) {
         const data = await res.json()
         alert(data.error || 'Gagal memproses transaksi')
+        setProcessing(false)
         return
       }
 
@@ -148,7 +222,7 @@ export default function POSPage() {
       const prodRes = await fetch('/api/inventory')
       setProducts(await prodRes.json())
     } catch {
-      alert('Terjadi kesalahan')
+      alert('Terjadi kesalahan saat menyimpan transaksi')
     } finally {
       setProcessing(false)
     }

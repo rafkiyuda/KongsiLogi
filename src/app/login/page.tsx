@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Package, Eye, EyeOff, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
@@ -51,8 +52,8 @@ export default function LoginPage() {
       <div className="w-full max-w-[420px]">
         {/* Branding */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-[#0f172a] rounded flex items-center justify-center mb-4">
-            <Package className="w-6 h-6 text-white" />
+          <div className="relative w-20 h-20 mb-4">
+            <Image src="/assets/logo/KongsiLogi.png" alt="KongsiLogi" fill className="object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-[#0f172a] tracking-tight">KongsiLogi ERP</h1>
           <p className="text-sm text-[#475569] mt-1">Enterprise Resource Planning System</p>

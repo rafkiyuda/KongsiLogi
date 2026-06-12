@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -70,8 +71,8 @@ export default function Sidebar({ user }: SidebarProps) {
         className="lg:hidden fixed top-0 left-0 z-50 p-4 h-[60px] bg-white border-b border-slate-200 text-slate-800 w-full flex items-center justify-between shadow-sm"
       >
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-            <Package className="w-5 h-5 text-white" />
+          <div className="relative w-8 h-8 shrink-0">
+            <Image src="/assets/logo/KongsiLogi.png" alt="KongsiLogi" fill className="object-contain" />
           </div>
           <span className="font-bold text-lg">KongsiLogi</span>
         </div>
@@ -95,8 +96,8 @@ export default function Sidebar({ user }: SidebarProps) {
       >
         {/* Header section */}
         <div className="flex items-center gap-3 p-5 h-[72px] bg-[#0b1120] shrink-0">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/20">
-            <Package className="w-6 h-6 text-white" />
+          <div className="relative w-10 h-10 shrink-0">
+            <Image src="/assets/logo/KongsiLogi.png" alt="KongsiLogi" fill className="object-contain" />
           </div>
           {!collapsed && (
             <div className="overflow-hidden whitespace-nowrap opacity-100 transition-opacity duration-300">

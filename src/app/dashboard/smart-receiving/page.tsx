@@ -66,11 +66,9 @@ export default function SmartReceivingPage() {
 
   // Putaway state
   const [selectedBatch, setSelectedBatch] = useState<PendingBatch | null>(null)
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([])
-  const [allocations, setAllocations] = useState<Record<string, number>>({})
+  const [allocationRows, setAllocationRows] = useState<{ id: string; rackId: string; quantity: number }[]>([])
   const [allocating, setAllocating] = useState(false)
   const [putawaySuccess, setPutawaySuccess] = useState(false)
-  const [showAddRack, setShowAddRack] = useState(false)
 
   // Heatmap state
   const [selectedRack, setSelectedRack] = useState<RackData | null>(null)
@@ -202,8 +200,7 @@ export default function SmartReceivingPage() {
   const handleSelectBatch = async (batch: PendingBatch) => {
     setSelectedBatch(batch)
     setPutawaySuccess(false)
-    setAllocations({})
-    setShowAddRack(false)
+    setAllocationRows([])
     try {
       const res = await fetch('/api/smart-receiving', {
         method: 'POST',
@@ -211,13 +208,11 @@ export default function SmartReceivingPage() {
         body: JSON.stringify({ action: 'recommend_racks', quantity: batch.quantity }),
       })
       const data = await res.json()
-      setRecommendations(data.recommendations || [])
-      // Auto-fill allocations from suggestions
-      const allocs: Record<string, number> = {}
-      for (const rec of data.recommendations || []) {
-        allocs[rec.rackId] = rec.suggested
-      }
-      setAllocations(allocs)
+      setAllocationRows((data.recommendations || []).map((r: any) => ({
+        id: crypto.randomUUID(),
+        rackId: r.rackId,
+        quantity: r.suggested
+      })))
     } catch (e) { console.error(e) }
   }
 
@@ -225,9 +220,9 @@ export default function SmartReceivingPage() {
   const handleConfirmPutaway = async () => {
     if (!selectedBatch) return
     setAllocating(true)
-    const allocs = Object.entries(allocations)
-      .filter(([, qty]) => qty > 0)
-      .map(([rackId, quantity]) => ({ rackId, quantity }))
+    const allocs = allocationRows
+      .filter(r => r.rackId && r.quantity > 0)
+      .map(r => ({ rackId: r.rackId, quantity: r.quantity }))
 
     try {
       const res = await fetch('/api/smart-receiving', {
@@ -239,9 +234,7 @@ export default function SmartReceivingPage() {
       if (data.success) {
         setPutawaySuccess(true)
         setSelectedBatch(null)
-        setRecommendations([])
-        setAllocations({})
-        setShowAddRack(false)
+        setAllocationRows([])
         fetchData()
       } else {
         alert(data.error || 'Gagal melakukan putaway')
@@ -250,7 +243,7 @@ export default function SmartReceivingPage() {
     finally { setAllocating(false) }
   }
 
-  const totalAllocated = Object.values(allocations).reduce((s, v) => s + (v || 0), 0)
+  const totalAllocated = allocationRows.reduce((s, r) => s + (r.quantity || 0), 0)
 
   // ── Loading ──────────────────────────────────────────────────────────
   if (loading) {
@@ -564,88 +557,70 @@ export default function SmartReceivingPage() {
                   </div>
                 </div>
 
-                {recommendations.length === 0 ? (
+                {allocationRows.length === 0 ? (
                   <div className="text-center py-8">
                     <AlertTriangle className="w-12 h-12 mx-auto mb-3 text-amber-500" />
-                    <p className="font-medium text-amber-600">Tidak ada rak dengan kapasitas cukup!</p>
+                    <p className="font-medium text-amber-600">Silakan tambahkan rak alokasi!</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {recommendations.map(rec => (
-                      <div key={rec.rackId} className="p-4 rounded-xl border"
-                        style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
-                        <div className="flex items-center justify-between mb-2">
-                          <div>
-                            <p className="font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                              {rec.rackCode}
-                              <button
-                                onClick={() => {
-                                  setRecommendations(prev => prev.filter(r => r.rackId !== rec.rackId))
-                                  setAllocations(prev => { const next = { ...prev }; delete next[rec.rackId]; return next })
-                                }}
-                                className="text-gray-400 hover:text-red-500 p-0.5 rounded transition-colors"
-                                title="Hapus dari daftar alokasi"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </p>
-                            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{rec.zone} • Sisa kapasitas: {rec.available} crate</p>
+                    {allocationRows.map(row => {
+                      const rackInfo = racks.find(r => r.id === row.rackId)
+                      const available = rackInfo ? rackInfo.capacityCrates - rackInfo.usedCrates : 0
+                      
+                      return (
+                        <div key={row.id} className="p-4 rounded-xl border"
+                          style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex-1 mr-4">
+                              <div className="flex items-center gap-2 mb-1">
+                                <select 
+                                  value={row.rackId} 
+                                  onChange={e => setAllocationRows(prev => prev.map(p => p.id === row.id ? { ...p, rackId: e.target.value } : p))}
+                                  className="flex-1 px-2 py-1.5 rounded-lg border font-bold text-sm"
+                                  style={{ background: 'var(--bg-primary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}
+                                >
+                                  <option value="">Pilih rak...</option>
+                                  {racks.map(r => (
+                                    <option key={r.id} value={r.id}>
+                                      {r.rackCode} ({r.zone}) - Sisa: {r.capacityCrates - r.usedCrates} crate
+                                    </option>
+                                  ))}
+                                </select>
+                                <button
+                                  onClick={() => setAllocationRows(prev => prev.filter(r => r.id !== row.id))}
+                                  className="text-gray-400 hover:text-red-500 p-1 rounded transition-colors flex-shrink-0"
+                                  title="Hapus baris"
+                                >
+                                  <Trash2 className="w-5 h-5" />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input type="number" min="0" max={adminOverride ? undefined : available}
+                                value={row.quantity || ''}
+                                onChange={e => setAllocationRows(prev => prev.map(p => p.id === row.id ? { ...p, quantity: Number(e.target.value) } : p))}
+                                className={`w-20 px-3 py-2 rounded-lg border text-center font-bold text-sm ${(!adminOverride && rackInfo && row.quantity > available) ? 'border-red-500 text-red-600 bg-red-50' : ''}`}
+                                style={{ background: 'var(--bg-primary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }} />
+                              <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>crate</span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <input type="number" min="0" max={adminOverride ? undefined : rec.available}
-                              value={allocations[rec.rackId] || ''}
-                              onChange={e => setAllocations(prev => ({ ...prev, [rec.rackId]: Number(e.target.value) }))}
-                              className={`w-20 px-3 py-2 rounded-lg border text-center font-bold text-sm ${(!adminOverride && (allocations[rec.rackId] || 0) > rec.available) ? 'border-red-500 text-red-600 bg-red-50' : ''}`}
-                              style={{ background: 'var(--bg-primary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }} />
-                            <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>crate</span>
-                          </div>
+                          {rackInfo && (
+                            <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-tertiary)' }}>
+                              <div className="h-full rounded-full transition-all"
+                                style={{ width: `${Math.min(100, ((available - row.quantity) / available) * 100)}%`, background: '#3b82f6' }} />
+                            </div>
+                          )}
                         </div>
-                        <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-tertiary)' }}>
-                          <div className="h-full rounded-full transition-all"
-                            style={{ width: `${Math.min(100, ((rec.available - (allocations[rec.rackId] || 0)) / rec.available) * 100)}%`, background: '#3b82f6' }} />
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
 
-                    {/* Manual Add Rack Button */}
-                    {!showAddRack ? (
-                      <button 
-                        onClick={() => setShowAddRack(true)}
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 mt-2 px-2 transition-colors"
-                      >
-                        + Tambahkan rak lain secara manual
-                      </button>
-                    ) : (
-                      <div className="mt-4 p-3 rounded-xl border border-dashed border-gray-300 flex items-center gap-2 transition-all" style={{ background: 'var(--bg-tertiary)' }}>
-                        <select
-                          className="flex-1 px-3 py-2 rounded-lg border text-sm font-medium"
-                          style={{ background: 'var(--bg-primary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}
-                          onChange={e => {
-                            const rack = racks.find(r => r.id === e.target.value)
-                            if (rack && !recommendations.some(r => r.rackId === rack.id)) {
-                              setRecommendations(prev => [...prev, {
-                                rackId: rack.id,
-                                rackCode: rack.rackCode,
-                                zone: rack.zone,
-                                available: rack.capacityCrates - rack.usedCrates,
-                                suggested: 0
-                              }])
-                              setShowAddRack(false)
-                            }
-                          }}
-                        >
-                          <option value="">Pilih rak...</option>
-                          {racks.filter(r => !recommendations.some(rec => rec.rackId === r.id)).map(r => (
-                            <option key={r.id} value={r.id}>
-                              {r.rackCode} ({r.zone}) - Sisa: {r.capacityCrates - r.usedCrates} crate
-                            </option>
-                          ))}
-                        </select>
-                        <button onClick={() => setShowAddRack(false)} className="text-gray-400 hover:text-gray-600 p-1">
-                          <XCircle className="w-5 h-5" />
-                        </button>
-                      </div>
-                    )}
+                    <button 
+                      onClick={() => setAllocationRows(prev => [...prev, { id: crypto.randomUUID(), rackId: '', quantity: 0 }])}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 mt-2 px-2 transition-colors"
+                    >
+                      + Tambahkan baris rak baru
+                    </button>
 
                     <div className="flex items-center gap-2 mt-4 px-2 pt-2 border-t" style={{ borderColor: 'var(--border-primary)' }}>
                       <input type="checkbox" id="adminOverride" checked={adminOverride} onChange={e => setAdminOverride(e.target.checked)} className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />

@@ -54,13 +54,12 @@ export default function SmartReceivingPage() {
   const [pendingPutaway, setPendingPutaway] = useState<PendingBatch[]>([])
 
   // Receiving state
-  const [scanResult, setScanResult] = useState<RfidTag | null>(null)
+  const [scannedTags, setScannedTags] = useState<RfidTag[]>([])
   const [scanning, setScanning] = useState(false)
-  const [selectedTag, setSelectedTag] = useState('')
+  const [tagInput, setTagInput] = useState('')
   const [selectedProduct, setSelectedProduct] = useState('')
   const [inferredProduct, setInferredProduct] = useState<{id: string, name: string} | null>(null)
   const [selectedSupplier, setSelectedSupplier] = useState('')
-  const [receiveQty, setReceiveQty] = useState('')
   const [receiving, setReceiving] = useState(false)
   const [receiveResult, setReceiveResult] = useState<string | null>(null)
 
@@ -93,36 +92,66 @@ export default function SmartReceivingPage() {
   useEffect(() => { fetchData() }, [fetchData])
 
   // ── Simulate Scan ────────────────────────────────────────────────────
-  const handleScan = async () => {
+  const handleScan = async (isBulk = false) => {
     setScanning(true)
-    setScanResult(null)
     setReceiveResult(null)
 
     // Simulating reading delay
-    await new Promise(r => setTimeout(r, 1500))
-
-    const tagToScan = selectedTag || rfidTags.find(t => t.status === 'AVAILABLE')?.tagCode
-    if (!tagToScan) {
-      setScanning(false)
-      return
-    }
+    await new Promise(r => setTimeout(r, 800))
 
     try {
-      const res = await fetch('/api/smart-receiving', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'scan_tag', tagCode: tagToScan }),
-      })
-      const data = await res.json()
-      if (data.tag) {
-        setScanResult(data.tag)
-        setSelectedTag(data.tag.tagCode)
-        if (data.inferredProduct) {
-          setInferredProduct(data.inferredProduct)
-          setSelectedProduct(data.inferredProduct.id)
-        } else {
-          setInferredProduct(null)
-          setSelectedProduct('')
+      if (isBulk) {
+        if (!tagInput) { alert('Pilih satu tag dari dropdown untuk menentukan SKU yang ingin di bulk-scan.'); setScanning(false); return }
+        const prefix = tagInput.split('-')[0]
+        const availableTags = rfidTags.filter(t => t.status === 'AVAILABLE' && t.tagCode.startsWith(prefix))
+        
+        if (availableTags.length === 0) { alert(`Tidak ada tag AVAILABLE untuk SKU ${prefix}`); setScanning(false); return }
+        
+        const res = await fetch('/api/smart-receiving', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'scan_tag', tagCode: availableTags[0].tagCode }),
+        })
+        const data = await res.json()
+        
+        if (data.tag) {
+          setScannedTags(availableTags) // Add all available tags
+          if (data.inferredProduct) {
+            setInferredProduct(data.inferredProduct)
+            setSelectedProduct(data.inferredProduct.id)
+          }
+        }
+      } else {
+        const tagToScan = tagInput || rfidTags.find(t => t.status === 'AVAILABLE')?.tagCode
+        if (!tagToScan) { setScanning(false); return }
+
+        if (scannedTags.some(t => t.tagCode === tagToScan)) {
+          alert('Tag ini sudah di-scan!')
+          setScanning(false); return
+        }
+
+        if (scannedTags.length > 0) {
+          const firstPrefix = scannedTags[0].tagCode.split('-')[0]
+          const currentPrefix = tagToScan.split('-')[0]
+          if (currentPrefix !== firstPrefix) {
+            alert(`Error: Tag ${tagToScan} berbeda SKU dengan tag sebelumnya (${firstPrefix})! Harus 1 SKU per batch.`)
+            setScanning(false); return
+          }
+        }
+
+        const res = await fetch('/api/smart-receiving', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'scan_tag', tagCode: tagToScan }),
+        })
+        const data = await res.json()
+        if (data.tag) {
+          setScannedTags(prev => [...prev, data.tag])
+          setTagInput('')
+          if (data.inferredProduct && scannedTags.length === 0) {
+            setInferredProduct(data.inferredProduct)
+            setSelectedProduct(data.inferredProduct.id)
+          }
         }
       }
     } catch (e) { console.error(e) }
@@ -131,7 +160,7 @@ export default function SmartReceivingPage() {
 
   // ── Receive Batch ────────────────────────────────────────────────────
   const handleReceive = async () => {
-    if (!selectedTag || !selectedProduct || !receiveQty) return
+    if (scannedTags.length === 0 || !selectedProduct) return
     setReceiving(true)
     try {
       const res = await fetch('/api/smart-receiving', {
@@ -139,21 +168,19 @@ export default function SmartReceivingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'receive_batch',
-          tagCode: selectedTag,
+          tagCodes: scannedTags.map(t => t.tagCode),
           productId: selectedProduct,
-          quantity: Number(receiveQty),
           supplierId: selectedSupplier || undefined,
         }),
       })
       const data = await res.json()
       if (data.batchCode) {
         setReceiveResult(data.batchCode)
-        setScanResult(null)
-        setSelectedTag('')
+        setScannedTags([])
+        setTagInput('')
         setSelectedProduct('')
         setInferredProduct(null)
         setSelectedSupplier('')
-        setReceiveQty('')
         fetchData()
       } else {
         alert(data.error || 'Gagal menerima batch')
@@ -302,25 +329,36 @@ export default function SmartReceivingPage() {
               <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>
                 Pilih Tag (Simulasi PoC)
               </label>
-              <select value={selectedTag} onChange={e => setSelectedTag(e.target.value)}
+              <select value={tagInput} onChange={e => setTagInput(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border text-sm transition-all"
                 style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}>
                 <option value="">-- Pilih RFID Tag --</option>
-                {rfidTags.filter(t => t.status === 'AVAILABLE').map(t => (
+                {rfidTags.filter(t => t.status === 'AVAILABLE' && !scannedTags.some(st => st.tagCode === t.tagCode)).map(t => (
                   <option key={t.id} value={t.tagCode}>{t.tagCode} (Available)</option>
                 ))}
               </select>
             </div>
 
-            <button onClick={handleScan} disabled={scanning}
-              className="w-full py-4 rounded-2xl font-bold text-white text-lg flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-              style={{ background: scanning ? '#6366f1' : 'linear-gradient(135deg, #3b82f6, #6366f1)' }}>
-              {scanning ? (
-                <><Loader2 className="w-6 h-6 animate-spin" /> Scanning...</>
-              ) : (
-                <><Radio className="w-6 h-6" /> Simulasi Scan RFID</>
-              )}
-            </button>
+            <div className="flex gap-3">
+              <button onClick={() => handleScan(false)} disabled={scanning}
+                className="flex-1 py-4 rounded-2xl font-bold text-white text-lg flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                style={{ background: scanning ? '#6366f1' : 'linear-gradient(135deg, #3b82f6, #6366f1)' }}>
+                {scanning ? <Loader2 className="w-6 h-6 animate-spin" /> : <Radio className="w-6 h-6" />}
+                Scan 1 Tag
+              </button>
+              
+              <button onClick={() => handleScan(true)} disabled={scanning}
+                className="px-6 rounded-2xl font-bold text-blue-600 flex flex-col items-center justify-center transition-all hover:bg-blue-50 border-2 border-blue-200 disabled:opacity-50">
+                <Box className="w-5 h-5 mb-1" />
+                <span className="text-xs">Bulk Scan</span>
+              </button>
+            </div>
+
+            {scannedTags.length > 0 && (
+              <button onClick={() => { setScannedTags([]); setInferredProduct(null); setTagInput('') }} className="w-full text-sm text-red-500 font-medium py-2 hover:bg-red-50 rounded-lg transition-colors">
+                Bersihkan Hasil Scan
+              </button>
+            )}
 
             {/* Scan pulse animation */}
             {scanning && (
@@ -335,24 +373,20 @@ export default function SmartReceivingPage() {
             )}
 
             {/* Scan Result */}
-            {scanResult && (
-              <div className="p-4 rounded-xl border-2 border-dashed space-y-2"
-                style={{ borderColor: '#22c55e', background: 'rgba(34,197,94,0.05)' }}>
-                <div className="flex items-center gap-2 text-green-600 font-bold">
-                  <CheckCircle2 className="w-5 h-5" /> Tag Terbaca!
+            {scannedTags.length > 0 && (
+              <div className="p-4 rounded-xl border-2 space-y-3"
+                style={{ borderColor: '#3b82f6', background: 'rgba(59,130,246,0.05)' }}>
+                <div className="flex items-center justify-between text-blue-700 font-bold">
+                  <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5" /> {scannedTags.length} Tag Terbaca</span>
                 </div>
-                <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                  <strong>Tag Code:</strong> {scanResult.tagCode}
-                </p>
-                <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                  <strong>Status:</strong>{' '}
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${scanResult.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                    {scanResult.status}
-                  </span>
-                </p>
-                {scanResult.status === 'AVAILABLE' && (
-                  <p className="text-xs text-green-600 font-medium">✓ Tag siap digunakan untuk batch baru</p>
-                )}
+                <div className="flex flex-wrap gap-2">
+                  {scannedTags.map(t => (
+                    <span key={t.id} className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-white border shadow-sm" style={{ color: 'var(--text-primary)' }}>
+                      {t.tagCode}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-xs text-blue-600 font-medium">✓ Siap di-generate menjadi 1 Batch berisi {scannedTags.length} Crate</p>
               </div>
             )}
 
@@ -376,7 +410,7 @@ export default function SmartReceivingPage() {
               Form Penerimaan Barang
             </h2>
 
-            {!scanResult || scanResult.status !== 'AVAILABLE' ? (
+            {!scannedTags.length ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <ScanLine className="w-16 h-16 mb-4" style={{ color: 'var(--text-muted)', opacity: 0.3 }} />
                 <p className="font-medium" style={{ color: 'var(--text-muted)' }}>
@@ -388,21 +422,26 @@ export default function SmartReceivingPage() {
               </div>
             ) : (
               <>
-                <div className="p-3 rounded-xl flex items-center gap-3" style={{ background: 'var(--bg-tertiary)' }}>
-                  <Tag className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
-                  <div>
-                    <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Tag Terbaca</p>
-                    <p className="font-bold font-mono" style={{ color: 'var(--text-primary)' }}>{scanResult.tagCode}</p>
+                <div className="p-4 rounded-xl flex items-center justify-between" style={{ background: 'var(--bg-tertiary)' }}>
+                  <div className="flex items-center gap-3">
+                    <Tag className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
+                    <div>
+                      <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Total Tag / Crate</p>
+                      <p className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>{scannedTags.length} Crate</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-md">1 Tag = 1 Crate</span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Pilih SKU / Produk *</label>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>SKU / Produk *</label>
                   {inferredProduct ? (
-                    <div className="w-full px-4 py-2.5 rounded-xl border text-sm flex items-center justify-between"
+                    <div className="w-full px-4 py-3 rounded-xl border text-sm flex items-center justify-between"
                       style={{ background: 'rgba(59,130,246,0.1)', borderColor: '#3b82f6', color: 'var(--text-primary)' }}>
-                      <span className="font-bold">{inferredProduct.name}</span>
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">Auto-detected dari Tag</span>
+                      <span className="font-bold text-lg">{inferredProduct.name}</span>
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold shadow-sm">Auto-detected dari Tag</span>
                     </div>
                   ) : (
                     <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}
@@ -416,10 +455,11 @@ export default function SmartReceivingPage() {
 
                 <div>
                   <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Jumlah (Crate) *</label>
-                  <input type="number" min="1" value={receiveQty} onChange={e => setReceiveQty(e.target.value)}
-                    placeholder="Contoh: 40"
-                    className="w-full px-4 py-2.5 rounded-xl border text-sm"
-                    style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }} />
+                  <div className="w-full px-4 py-3 rounded-xl border text-sm font-bold flex items-center justify-between opacity-70"
+                    style={{ background: 'var(--bg-tertiary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}>
+                    <span>{scannedTags.length}</span>
+                    <span className="text-xs text-gray-500">Auto-calculated</span>
+                  </div>
                 </div>
 
                 <div>
@@ -437,7 +477,7 @@ export default function SmartReceivingPage() {
                   <p className="font-bold" style={{ color: 'var(--text-primary)' }}>{new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
 
-                <button onClick={handleReceive} disabled={receiving || !selectedProduct || !receiveQty}
+                <button onClick={handleReceive} disabled={receiving || !selectedProduct || scannedTags.length === 0}
                   className="w-full py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50"
                   style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}>
                   {receiving ? <><Loader2 className="w-5 h-5 animate-spin" /> Memproses...</> : <><CheckCircle2 className="w-5 h-5" /> Generate Batch & Terima</>}

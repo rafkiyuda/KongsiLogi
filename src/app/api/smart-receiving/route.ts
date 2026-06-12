@@ -146,17 +146,40 @@ export async function POST(request: Request) {
 
     // ── RECEIVE BATCH ────────────────────────────────────────────────────
     if (action === 'receive_batch') {
-      const { tagCode, productId, quantity, supplierId } = body
+      const { tagCodes, productId, supplierId } = body
 
-      // Validate tag
-      const tag = await prisma.rfidTag.findUnique({ where: { tagCode } })
-      if (!tag) return NextResponse.json({ error: 'Tag tidak ditemukan' }, { status: 404 })
-      if (tag.status === 'ASSIGNED') return NextResponse.json({ error: 'Tag sedang digunakan untuk batch lain' }, { status: 400 })
-      if (tag.status === 'DECOMMISSIONED') return NextResponse.json({ error: 'Tag sudah tidak aktif' }, { status: 400 })
+      if (!tagCodes || !Array.isArray(tagCodes) || tagCodes.length === 0) {
+        return NextResponse.json({ error: 'Minimal 1 tag RFID harus discan' }, { status: 400 })
+      }
+
+      // Validate all tags
+      const tags = await prisma.rfidTag.findMany({
+        where: { tagCode: { in: tagCodes } }
+      })
+
+      if (tags.length !== tagCodes.length) {
+        return NextResponse.json({ error: 'Beberapa tag tidak ditemukan di database' }, { status: 404 })
+      }
+
+      // Check status
+      for (const t of tags) {
+        if (t.status === 'ASSIGNED') return NextResponse.json({ error: `Tag ${t.tagCode} sedang digunakan` }, { status: 400 })
+        if (t.status === 'DECOMMISSIONED') return NextResponse.json({ error: `Tag ${t.tagCode} tidak aktif` }, { status: 400 })
+      }
+
+      // Validate matching SKU prefixes
+      const prefix = tagCodes[0].split('-')[0]
+      for (const code of tagCodes) {
+        if (code.split('-')[0] !== prefix) {
+          return NextResponse.json({ error: 'Tag yang discan harus dari SKU (Product) yang sama' }, { status: 400 })
+        }
+      }
 
       // Get product info for SKU code
       const product = await prisma.product.findUnique({ where: { id: productId } })
       if (!product) return NextResponse.json({ error: 'Produk tidak ditemukan' }, { status: 404 })
+
+      const quantity = tagCodes.length
 
       // Generate batch code: SKU-YYMMDD-NNN
       const skuMap: Record<string, string> = {
@@ -194,27 +217,26 @@ export async function POST(request: Request) {
           expiryDate,
           storageLocation: 'Cold Storage A',
           status: 'SAFE',
-          notes: `Diterima via RFID: ${tagCode}`,
+          notes: `Diterima via RFID (Total: ${quantity} tag)`,
         },
       })
 
-      // Assign tag to batch
-      await prisma.rfidTag.update({
-        where: { id: tag.id },
+      // Assign all tags to batch
+      await prisma.rfidTag.updateMany({
+        where: { tagCode: { in: tagCodes } },
         data: { status: 'ASSIGNED', currentBatchId: batch.id, lastScannedAt: now },
       })
 
-      // Log
-      await prisma.receivingLog.create({
-        data: {
-          rfidTagId: tag.id,
-          batchCode,
-          productName: product.name,
-          quantity: Number(quantity),
-          action: 'SCAN_IN',
-          note: `Batch baru diterima dari supplier`,
-        },
-      })
+      // Log for each tag
+      const logsToCreate = tags.map(t => ({
+        rfidTagId: t.id,
+        batchCode,
+        productName: product.name,
+        quantity: 1, // 1 tag = 1 crate
+        action: 'SCAN_IN',
+        note: `Crate diterima dari supplier`,
+      }))
+      await prisma.receivingLog.createMany({ data: logsToCreate })
 
       return NextResponse.json({ batch, batchCode })
     }
@@ -257,19 +279,19 @@ export async function POST(request: Request) {
         })
       }
 
-      // Log
-      const tag = await prisma.rfidTag.findFirst({ where: { currentBatchId: batchId } })
-      if (tag) {
-        await prisma.receivingLog.create({
-          data: {
-            rfidTagId: tag.id,
-            batchCode: batch.batchCode,
-            productName: (await prisma.product.findUnique({ where: { id: batch.productId } }))?.name || '',
-            quantity: Number(batch.quantity),
-            action: 'PUTAWAY',
-            note: `Dialokasikan ke ${(allocations as { rackId: string; quantity: number }[]).length} rack`,
-          },
-        })
+      // Log for each tag
+      const tags = await prisma.rfidTag.findMany({ where: { currentBatchId: batchId } })
+      if (tags.length > 0) {
+        const productName = (await prisma.product.findUnique({ where: { id: batch.productId } }))?.name || ''
+        const logsToCreate = tags.map(t => ({
+          rfidTagId: t.id,
+          batchCode: batch.batchCode,
+          productName,
+          quantity: 1,
+          action: 'PUTAWAY',
+          note: `Dialokasikan ke rak bersama ${tags.length - 1} crate lainnya`,
+        }))
+        await prisma.receivingLog.createMany({ data: logsToCreate })
       }
 
       return NextResponse.json({ success: true })

@@ -26,15 +26,16 @@ export async function middleware(request: NextRequest) {
   // Check auth token
   const token = request.cookies.get('auth-token')?.value
 
-  let payload = token ? await verifyToken(token) : null
+  if (!token) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  const payload = await verifyToken(token)
 
   if (!payload) {
-    payload = {
-      userId: 'cmpyd85zb00012wznzo9qes5o', // Hardcoded admin ID for testing
-      email: 'admin@kongsil.co',
-      role: 'ADMIN',
-      name: 'Admin Koperasi (Testing)',
-    }
+    const response = NextResponse.redirect(new URL('/login', request.url))
+    response.cookies.delete('auth-token')
+    return response
   }
   // --- END TEMPORARY LOGIN BYPASS ---
 

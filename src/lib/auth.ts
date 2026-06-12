@@ -32,21 +32,8 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
 export async function getSession(): Promise<JWTPayload | null> {
   const cookieStore = await cookies()
   const token = cookieStore.get('auth-token')?.value
-  
-  let payload = token ? await verifyToken(token) : null
-
-  // --- BEGIN TEMPORARY LOGIN BYPASS ---
-  if (!payload) {
-    payload = {
-      userId: 'cmpyd85zb00012wznzo9qes5o', // Hardcoded admin ID for testing
-      email: 'admin@kongsil.co',
-      role: 'ADMIN',
-      name: 'Admin Koperasi (Testing)',
-    }
-  }
-  // --- END TEMPORARY LOGIN BYPASS ---
-
-  return payload
+  if (!token) return null
+  return verifyToken(token)
 }
 
 export async function setSession(token: string) {

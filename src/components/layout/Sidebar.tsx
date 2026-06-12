@@ -17,10 +17,9 @@ import {
   Settings,
   Menu,
   X,
-  Server
 } from 'lucide-react'
-import { useState, useEffect, useCallback } from 'react'
-import { ROLE_LABELS } from '@/lib/constants'
+import { useState, useEffect, useCallback, startTransition } from 'react'
+import { ROLE_LABELS, ROLE_ACCESS_MAP } from '@/lib/constants'
 
 interface SidebarProps {
   user: {
@@ -39,14 +38,8 @@ const menuItems = [
   { href: '/dashboard/stock-opname', label: 'Stock Opname', icon: ClipboardList, access: 'stockOpname' },
   { href: '/dashboard/reports', label: 'Analytics & Reports', icon: BarChart3, access: 'reports' },
   { href: '/dashboard/notifications', label: 'System Alerts', icon: Bell, access: 'notifications' },
-]
+] as const
 
-const roleAccess: Record<string, Record<string, boolean>> = {
-  ADMIN: { dashboard: true, inventory: true, coldStorage: true, procurement: true, pos: true, stockOpname: true, reports: true, notifications: true, settings: true },
-  WAREHOUSE_STAFF: { dashboard: true, inventory: true, coldStorage: true, procurement: true, pos: false, stockOpname: true, reports: false, notifications: true, settings: false },
-  CASHIER: { dashboard: true, inventory: true, coldStorage: false, procurement: false, pos: true, stockOpname: false, reports: false, notifications: true, settings: false },
-  VIEWER: { dashboard: true, inventory: true, coldStorage: true, procurement: false, pos: false, stockOpname: false, reports: true, notifications: true, settings: false },
-}
 
 export default function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
@@ -54,7 +47,7 @@ export default function Sidebar({ user }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const access = roleAccess[user.role] || roleAccess.VIEWER
+  const access = ROLE_ACCESS_MAP[user.role] ?? ROLE_ACCESS_MAP.VIEWER
 
   const handleLogout = useCallback(async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -63,7 +56,8 @@ export default function Sidebar({ user }: SidebarProps) {
   }, [router])
 
   useEffect(() => {
-    setMobileOpen(false)
+    // Dismiss mobile drawer on route change.
+    startTransition(() => setMobileOpen(false))
   }, [pathname])
 
   const filteredMenuItems = menuItems.filter(item => access[item.access])
@@ -96,7 +90,7 @@ export default function Sidebar({ user }: SidebarProps) {
       <aside
         className={`bg-[#0f172a] text-white z-40 flex flex-col transition-all duration-300 ease-in-out shrink-0 relative
           ${collapsed ? 'w-[80px]' : 'w-[280px]'} 
-          ${mobileOpen ? 'fixed top-0 left-0 h-screen translate-x-0' : 'fixed top-0 left-0 h-screen -translate-x-full lg:static lg:translate-x-0 lg:h-full'}
+          ${mobileOpen ? 'fixed top-0 left-0 h-[100dvh] translate-x-0' : 'fixed top-0 left-0 h-[100dvh] -translate-x-full lg:static lg:translate-x-0 lg:h-full'}
         `}
       >
         {/* Header section */}

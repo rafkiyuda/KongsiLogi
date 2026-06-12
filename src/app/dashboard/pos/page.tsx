@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import {
   ShoppingCart, Plus, Minus, Trash2, CreditCard, Loader2,
-  Package, Search, X, Receipt, Check, Banknote
+  Package, Search, Receipt, Check, Banknote
 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 
@@ -113,7 +113,7 @@ export default function POSPage() {
       // Refresh products
       const prodRes = await fetch('/api/inventory')
       setProducts(await prodRes.json())
-    } catch (err) {
+    } catch {
       alert('Terjadi kesalahan')
     } finally {
       setProcessing(false)
@@ -133,7 +133,7 @@ export default function POSPage() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-120px)]">
+    <div className="flex flex-col lg:flex-row gap-4 min-h-[calc(100dvh-120px)] lg:h-[calc(100dvh-120px)] lg:min-h-0">
       {/* Product grid */}
       <div className="flex-1 flex flex-col min-h-0">
         <div className="flex items-center justify-between mb-4">

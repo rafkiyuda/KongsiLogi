@@ -2,20 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import {
-  Bell, Check, CheckCheck, Loader2, Package, AlertTriangle,
+  Bell, CheckCheck, Loader2, Package, AlertTriangle,
   ShoppingCart, ClipboardList, Clock, DollarSign
 } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
-
-interface Notification {
-  id: string
-  title: string
-  message: string
-  type: string
-  isRead: boolean
-  actionUrl: string | null
-  createdAt: string
-}
+import type { Notification } from '@/types'
 
 const typeConfig: Record<string, { icon: typeof Bell; color: string }> = {
   LOW_STOCK: { icon: Package, color: '#fbbf24' },

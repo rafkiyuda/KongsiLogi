@@ -1,44 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Search, Filter, Plus, Package, AlertTriangle, Timer, Loader2, Sparkles, X, TrendingDown } from 'lucide-react'
+import { useEffect, useState, useCallback } from 'react'
+import { Search, Plus, Package, Timer, Loader2, Sparkles, X, TrendingDown } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { formatCurrency, getDaysUntilExpiry, getExpiryStatus, statusColors, statusLabels } from '@/lib/utils'
 import { PRODUCT_CATEGORIES } from '@/lib/constants'
-
-interface Product {
-  id: string
-  name: string
-  category: string
-  unit: string
-  imageUrl?: string | null
-  sellingPrice: number
-  minimumStock: number
-  shelfLifeDays: number
-  totalRemaining: number
-  stockStatus: string
-  batchCount: number
-  nearestExpiry: string | null
-  daysUntilExpiry: number | null
-  inventoryBatches: Array<{
-    id: string
-    batchCode: string
-    remainingQuantity: number
-    expiryDate: string
-    status: string
-    storageLocation: string
-    supplier: { name: string } | null
-  }>
-}
+import type { DemandForecastResult, EnrichedProduct } from '@/types'
 
 export default function InventoryPage() {
-  const [products, setProducts] = useState<Product[]>([])
+  const [products, setProducts] = useState<EnrichedProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  
-  const [aiRecommendations, setAiRecommendations] = useState<any[]>([])
+  const [selectedProduct, setSelectedProduct] = useState<EnrichedProduct | null>(null)
+
+  const [aiRecommendations, setAiRecommendations] = useState<DemandForecastResult[]>([])
   const [aiLoading, setAiLoading] = useState(false)
   const [showAiModal, setShowAiModal] = useState(false)
 
@@ -76,11 +53,7 @@ export default function InventoryPage() {
     }
   }
 
-  useEffect(() => {
-    fetchProducts()
-  }, [search, category])
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams()
     if (search) params.set('search', search)
@@ -90,7 +63,12 @@ export default function InventoryPage() {
     const data = await res.json()
     setProducts(data)
     setLoading(false)
-  }
+  }, [search, category])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchProducts()
+  }, [fetchProducts])
 
   const getStatusStyle = (status: string) => {
     const colors = statusColors[status as keyof typeof statusColors] || statusColors.safe
@@ -181,13 +159,15 @@ export default function InventoryPage() {
                 <div className="flex items-start gap-3">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden bg-slate-100 border border-slate-200">
                     {product.imageUrl ? (
-                      <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <img 
-                        src={`https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=100&h=100&q=80&blur=2`} 
-                        alt="Generic Product" 
-                        className="w-full h-full object-cover opacity-80"
+                      <Image
+                        src={product.imageUrl}
+                        alt={product.name}
+                        width={48}
+                        height={48}
+                        className="w-full h-full object-cover"
                       />
+                    ) : (
+                      <Package className="w-6 h-6 text-slate-400" />
                     )}
                   </div>
                   <div className="min-w-0">

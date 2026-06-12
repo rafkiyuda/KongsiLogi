@@ -14,7 +14,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-100">
+    <div className="flex h-[100dvh] overflow-hidden bg-slate-100">
       {/* Sidebar Navigation - Handles its own width via Client Component */}
       <Sidebar user={{ name: session.name, email: session.email, role: session.role }} />
 

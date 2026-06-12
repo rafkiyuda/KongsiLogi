@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
-  ClipboardList, Plus, Loader2, Check, AlertTriangle,
-  Eye, EyeOff, CheckCircle, Clock, Minus
+  ClipboardList, Plus, Loader2, Check,
+  EyeOff, CheckCircle, Clock
 } from 'lucide-react'
-import { formatDate, formatDateTime } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
 import { AUDIT_STATUS_LABELS } from '@/lib/constants'
 
 interface AuditItem {
@@ -36,16 +36,17 @@ export default function StockOpnamePage() {
   const [creating, setCreating] = useState(false)
   const [viewResult, setViewResult] = useState<Audit | null>(null)
 
-  useEffect(() => {
-    fetchAudits()
-  }, [])
-
-  const fetchAudits = async () => {
+  const fetchAudits = useCallback(async () => {
     setLoading(true)
     const res = await fetch('/api/stock-opname')
     setAudits(await res.json())
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchAudits()
+  }, [fetchAudits])
 
   const startNewAudit = async () => {
     setCreating(true)

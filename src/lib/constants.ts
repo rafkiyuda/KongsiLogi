@@ -1,3 +1,5 @@
+import type { RoleAccessMap, MockSupplier } from '@/types'
+
 export const APP_NAME = 'KongsiLogi'
 export const APP_DESCRIPTION = 'Platform Manajemen Inventory & Rantai Pasok Koperasi'
 export const COOPERATIVE_NAME = 'Koperasi Melati Jaya'
@@ -89,3 +91,68 @@ export const NOTIFICATION_TYPES = {
 } as const
 
 export const COLD_STORAGE_CAPACITY = 1000 // kg
+
+// =============================================================================
+// Role Access Map — Single Source of Truth for role-based permissions.
+// Used by: src/lib/auth.ts (getRoleAccess), src/components/layout/Sidebar.tsx
+// =============================================================================
+export const ROLE_ACCESS_MAP: Record<string, RoleAccessMap> = {
+  ADMIN: {
+    dashboard: true,
+    inventory: true,
+    coldStorage: true,
+    procurement: true,
+    pos: true,
+    stockOpname: true,
+    reports: true,
+    notifications: true,
+    settings: true,
+    approvals: true,
+  },
+  WAREHOUSE_STAFF: {
+    dashboard: true,
+    inventory: true,
+    coldStorage: true,
+    procurement: true,
+    pos: false,
+    stockOpname: true,
+    reports: false,
+    notifications: true,
+    settings: false,
+    approvals: false,
+  },
+  CASHIER: {
+    dashboard: true,
+    inventory: true,
+    coldStorage: false,
+    procurement: false,
+    pos: true,
+    stockOpname: false,
+    reports: false,
+    notifications: true,
+    settings: false,
+    approvals: false,
+  },
+  VIEWER: {
+    dashboard: true,
+    inventory: true,
+    coldStorage: true,
+    procurement: false,
+    pos: false,
+    stockOpname: false,
+    reports: true,
+    notifications: true,
+    settings: false,
+    approvals: false,
+  },
+}
+
+// =============================================================================
+// Mock Suppliers — Demo data for AI Supplier Scoring feature.
+// In production, this data would come from the suppliers table in the database.
+// =============================================================================
+export const MOCK_SUPPLIERS: MockSupplier[] = [
+  { id: 'S001', name: 'PT Maju Jaya Abadi', priceLevel: 'Sedang', consistency: 'Tinggi', onTimeRate: '95%' },
+  { id: 'S002', name: 'CV Berkah Tani', priceLevel: 'Rendah', consistency: 'Sedang', onTimeRate: '80%' },
+  { id: 'S003', name: 'Koperasi Tunas Harapan', priceLevel: 'Tinggi', consistency: 'Sangat Tinggi', onTimeRate: '99%' },
+]

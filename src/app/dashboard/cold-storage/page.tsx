@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Snowflake, Thermometer, Package, AlertTriangle, Loader2, Timer, Sparkles, X } from 'lucide-react'
+import { Snowflake, Thermometer, Package, Loader2, Sparkles, X } from 'lucide-react'
 import { getDaysUntilExpiry, statusColors, statusLabels } from '@/lib/utils'
+import type { SmartPricingResult } from '@/types'
 
 interface Batch {
   id: string
@@ -19,7 +20,7 @@ export default function ColdStoragePage() {
   const [batches, setBatches] = useState<Batch[]>([])
   const [loading, setLoading] = useState(true)
   const [capacity, setCapacity] = useState({ used: 0, total: 1000 })
-  const [aiRecommendations, setAiRecommendations] = useState<any[]>([])
+  const [aiRecommendations, setAiRecommendations] = useState<SmartPricingResult[]>([])
   const [aiLoading, setAiLoading] = useState(false)
   const [showAiModal, setShowAiModal] = useState(false)
 

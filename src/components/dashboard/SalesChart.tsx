@@ -42,7 +42,9 @@ export default function SalesChart({ data }: SalesChartProps) {
             fontWeight: 600,
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
           }}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           formatter={(value: any) => [formatCurrency(Number(value || 0)), 'Revenue']}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           labelFormatter={(label: any) => `Date: ${label}`}
           cursor={{ fill: '#f1f5f9' }}
         />

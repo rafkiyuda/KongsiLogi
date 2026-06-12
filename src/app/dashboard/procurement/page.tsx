@@ -1,39 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
-  ShoppingCart, Plus, Loader2, Check, X, Package as PackageIcon,
+  ShoppingCart, Plus, Loader2, Check, X,
   Clock, CheckCircle, XCircle, Truck, ArrowLeft, Sparkles, Star
 } from 'lucide-react'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
-import { PURCHASE_STATUS_LABELS } from '@/lib/constants'
-
-interface PurchaseRequest {
-  id: string
-  status: string
-  notes: string | null
-  totalEstimatedPrice: number
-  createdAt: string
-  approvedAt: string | null
-  rejectionReason: string | null
-  requestedBy: { name: string }
-  approvedBy: { name: string } | null
-  supplier: { name: string } | null
-  items: Array<{
-    id: string
-    quantity: number
-    unit: string
-    estimatedPrice: number
-    product: { name: string; unit: string }
-  }>
-}
-
-interface Product {
-  id: string
-  name: string
-  unit: string
-  costPrice: number
-}
+import { PURCHASE_STATUS_LABELS, MOCK_SUPPLIERS } from '@/lib/constants'
+import type { PurchaseRequest, Product, SupplierScoringResult } from '@/types'
 
 export default function ProcurementPage() {
   const [requests, setRequests] = useState<PurchaseRequest[]>([])
@@ -47,15 +21,26 @@ export default function ProcurementPage() {
   const [creating, setCreating] = useState(false)
   const [processing, setProcessing] = useState<string | null>(null)
 
-  const [aiRecommendations, setAiRecommendations] = useState<any[]>([])
+  const [aiRecommendations, setAiRecommendations] = useState<SupplierScoringResult[]>([])
   const [aiLoading, setAiLoading] = useState(false)
   const [showAiModal, setShowAiModal] = useState(false)
 
-  const mockSuppliers = [
-    { id: 'S001', name: 'PT Maju Jaya Abadi', priceLevel: 'Sedang', consistency: 'Tinggi', onTimeRate: '95%' },
-    { id: 'S002', name: 'CV Berkah Tani', priceLevel: 'Rendah', consistency: 'Sedang', onTimeRate: '80%' },
-    { id: 'S003', name: 'Koperasi Tunas Harapan', priceLevel: 'Tinggi', consistency: 'Sangat Tinggi', onTimeRate: '99%' }
-  ]
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    const params = filter ? `?status=${filter}` : ''
+    const [prRes, prodRes] = await Promise.all([
+      fetch(`/api/procurement${params}`),
+      fetch('/api/inventory'),
+    ])
+    setRequests(await prRes.json())
+    setProducts(await prodRes.json())
+    setLoading(false)
+  }, [filter])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchData()
+  }, [fetchData])
 
   const handleGetSupplierScoring = async () => {
     setAiLoading(true)
@@ -64,7 +49,7 @@ export default function ProcurementPage() {
       const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'supplier_scoring', data: mockSuppliers })
+        body: JSON.stringify({ action: 'supplier_scoring', data: MOCK_SUPPLIERS }),
       })
       const data = await res.json()
       if (data.success) {
@@ -75,22 +60,6 @@ export default function ProcurementPage() {
     } finally {
       setAiLoading(false)
     }
-  }
-
-  useEffect(() => {
-    fetchData()
-  }, [filter])
-
-  const fetchData = async () => {
-    setLoading(true)
-    const params = filter ? `?status=${filter}` : ''
-    const [prRes, prodRes] = await Promise.all([
-      fetch(`/api/procurement${params}`),
-      fetch('/api/inventory'),
-    ])
-    setRequests(await prRes.json())
-    setProducts(await prodRes.json())
-    setLoading(false)
   }
 
   const handleCreate = async () => {
@@ -289,7 +258,7 @@ export default function ProcurementPage() {
                 </div>
                 <select className="input-field" value={selectedSupplierId} onChange={e => setSelectedSupplierId(e.target.value)}>
                   <option value="">-- Pilih Supplier --</option>
-                  {mockSuppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  {MOCK_SUPPLIERS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
 
@@ -361,7 +330,7 @@ export default function ProcurementPage() {
                 <div className="space-y-4">
                   <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Berdasarkan analisis riwayat konsistensi dan harga, berikut rekomendasi pemasok terbaik:</p>
                   {aiRecommendations.map((rec, i) => {
-                    const supplier = mockSuppliers.find(s => s.id === rec.supplierId)
+                    const supplier = MOCK_SUPPLIERS.find(s => s.id === rec.supplierId)
                     return (
                       <div key={i} className="p-4 rounded-xl border flex flex-col gap-3 cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/10 transition-colors" 
                            style={{ background: 'var(--bg-tertiary)', borderColor: 'var(--border-light)' }}

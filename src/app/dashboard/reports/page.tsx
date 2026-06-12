@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
-  BarChart3, Download, Loader2, TrendingUp, TrendingDown,
+  Download, Loader2, TrendingUp,
   ShoppingCart, Package, ClipboardList, DollarSign, FileText
 } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -22,11 +22,7 @@ export default function ReportsPage() {
   const [report, setReport] = useState<ReportData | null>(null)
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    fetchReport()
-  }, [reportType, dateFrom, dateTo])
-
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams({ type: reportType })
     if (dateFrom) params.set('from', dateFrom)
@@ -35,7 +31,12 @@ export default function ReportsPage() {
     const res = await fetch(`/api/reports?${params}`)
     setReport(await res.json())
     setLoading(false)
-  }
+  }, [reportType, dateFrom, dateTo])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchReport()
+  }, [fetchReport])
 
   const reportTypes = [
     { value: 'sales' as const, label: 'Penjualan', icon: TrendingUp, color: '#4ade80' },
@@ -282,7 +283,7 @@ export default function ReportsPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {(report.data as Array<{id: string; auditDate: string; conductor: {name: string}; items: any[]; notes: string | null}>).slice(0, 20).map(a => (
+                      {(report.data as Array<{id: string; auditDate: string; conductor: {name: string}; items: {id: string}[]; notes: string | null}>).slice(0, 20).map(a => (
                         <tr key={a.id} className="hover:bg-slate-50 transition-colors">
                           <td className="px-4 py-3 text-sm text-slate-700">{formatDate(a.auditDate)}</td>
                           <td className="px-4 py-3 text-sm text-slate-700">{a.conductor.name}</td>

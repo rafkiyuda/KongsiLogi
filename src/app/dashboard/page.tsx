@@ -268,8 +268,8 @@ export default function DashboardPage() {
             </Link>
           </div>
           
-          <div className="p-2">
-            <table className="w-full text-left text-sm">
+          <div className="p-2 overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left text-sm min-w-[500px]">
               <thead className="text-xs text-slate-400 uppercase tracking-wider font-semibold">
                 <tr>
                   <th className="px-4 py-4 pb-2">Ref ID</th>

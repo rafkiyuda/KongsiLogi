@@ -1,5 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
+import { ROLE_ACCESS_MAP } from '@/lib/constants'
+import type { RoleAccessMap } from '@/types'
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-key')
 
@@ -50,57 +52,12 @@ export async function clearSession() {
   cookieStore.delete('auth-token')
 }
 
-export function getRoleAccess(role: string) {
-  const access = {
-    ADMIN: {
-      dashboard: true,
-      inventory: true,
-      coldStorage: true,
-      procurement: true,
-      pos: true,
-      stockOpname: true,
-      reports: true,
-      notifications: true,
-      settings: true,
-      approvals: true,
-    },
-    WAREHOUSE_STAFF: {
-      dashboard: true,
-      inventory: true,
-      coldStorage: true,
-      procurement: true,
-      pos: false,
-      stockOpname: true,
-      reports: false,
-      notifications: true,
-      settings: false,
-      approvals: false,
-    },
-    CASHIER: {
-      dashboard: true,
-      inventory: true,
-      coldStorage: false,
-      procurement: false,
-      pos: true,
-      stockOpname: false,
-      reports: false,
-      notifications: true,
-      settings: false,
-      approvals: false,
-    },
-    VIEWER: {
-      dashboard: true,
-      inventory: true,
-      coldStorage: true,
-      procurement: false,
-      pos: false,
-      stockOpname: false,
-      reports: true,
-      notifications: true,
-      settings: false,
-      approvals: false,
-    },
-  }
-
-  return access[role as keyof typeof access] || access.VIEWER
+/**
+ * Returns the access permissions for a given role.
+ * Delegates to ROLE_ACCESS_MAP in constants — single source of truth.
+ * Falls back to VIEWER permissions for unknown roles.
+ */
+export function getRoleAccess(role: string): RoleAccessMap {
+  return ROLE_ACCESS_MAP[role] ?? ROLE_ACCESS_MAP.VIEWER
 }
+

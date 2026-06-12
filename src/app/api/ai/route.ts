@@ -63,8 +63,9 @@ ${JSON.stringify(data, null, 2)}
 
     return NextResponse.json({ success: true, result: parsedData })
 
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal server error processing AI request'
     console.error('AI API Error:', error)
-    return NextResponse.json({ error: error.message || 'Internal server error processing AI request' }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

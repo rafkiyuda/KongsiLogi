@@ -1,36 +1,63 @@
+/* =============================================================================
+   KongsiLogi — Global Design System
+   =============================================================================
+   Structure:
+   1. Font Import
+   2. Design Tokens (CSS Custom Properties)
+   3. Base Reset / Body
+   4. Layout Components
+   5. Form Components
+   6. Button System
+   7. Status System (badges)
+   8. Dashboard Widgets
+   9. Scrollbar
+  10. Animations & Utilities
+   ============================================================================= */
+
+/* 1. Font Import ------------------------------------------------------------ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* 2. Design Tokens ---------------------------------------------------------- */
 :root {
-  /* Modern Clean Palette */
-  --bg-main: #f1f5f9; /* Slate 100 for better card contrast */
-  --bg-card: #ffffff;
-  --bg-sidebar: #0f172a;
-  
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --text-inverse: #ffffff;
-  
-  --border-light: #e2e8f0; /* Slate 200 for visible borders */
-  --border-focus: #3b82f6;
-  --border-color: #e2e8f0;
-  
-  --brand-primary: #3b82f6; /* Modern Blue */
-  --brand-hover: #2563eb;
-  --accent-primary: #3b82f6;
-  
-  --status-success: #10b981;
-  --status-warning: #f59e0b;
-  --status-error: #ef4444;
-  
-  --bg-tertiary: #f8fafc; /* Slate 50 for items inside card */
-  
-  /* Modern styling: large radius, soft shadow */
-  --shadow-modern: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 0 3px rgba(0,0,0,0.02);
-  --radius-modern: 20px; /* Modern rounded corners */
+  /* Background */
+  --bg-main: #f1f5f9;       /* Page background (Slate 100) */
+  --bg-card: #ffffff;        /* Card / panel background */
+  --bg-sidebar: #0f172a;     /* Sidebar background (Slate 900) */
+  --bg-tertiary: #f8fafc;    /* Subtle inner backgrounds (Slate 50) */
+
+  /* Typography */
+  --text-primary: #0f172a;   /* Main text (Slate 900) */
+  --text-secondary: #475569; /* Secondary text (Slate 600) */
+  --text-muted: #64748b;     /* Muted / placeholder (Slate 500) */
+  --text-inverse: #ffffff;   /* Text on dark backgrounds */
+
+  /* Borders */
+  --border-color: #e2e8f0;   /* Default border (Slate 200) */
+  --border-light: #e2e8f0;   /* Alias — prefer --border-color */
+  --border-focus: #3b82f6;   /* Focus ring (Blue 500) */
+
+  /* Brand */
+  --brand-primary: #3b82f6;  /* Primary action colour (Blue 500) */
+  --brand-hover: #2563eb;    /* Hover state (Blue 600) */
+  --accent-primary: #3b82f6; /* Alias for --brand-primary */
+
+  /* Status */
+  --status-success: #10b981; /* Emerald 500 */
+  --status-warning: #f59e0b; /* Amber 500 */
+  --status-error: #ef4444;   /* Red 500 */
+
+  /* Elevation */
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 0 3px rgba(0, 0, 0, 0.02);
+  --shadow-card-hover: 0 10px 30px -5px rgba(0, 0, 0, 0.06);
+
+  /* Shape */
+  --radius-card: 20px;       /* Large rounded corners for cards */
+  --radius-input: 12px;      /* Input / button radius */
+  --radius-sm: 10px;         /* Smaller elements */
 }
 
+/* 3. Base Reset / Body ------------------------------------------------------ */
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--bg-main);
@@ -40,29 +67,93 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Base structural classes */
+/* 4. Layout Components ------------------------------------------------------ */
+
+/**
+ * .erp-card — Primary card / panel component.
+ * Use this for all content containers.
+ */
 .erp-card {
   background-color: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-modern);
-  box-shadow: var(--shadow-modern);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .erp-card:hover {
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-card-hover);
 }
 
+/**
+ * .glass-card — Alias for .erp-card (backward compat).
+ * Prefer .erp-card for new code.
+ */
+.glass-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+/**
+ * .erp-page-header — Reusable page title block.
+ * Wraps the h1 + subtitle pattern used in every dashboard page.
+ */
+.erp-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+/* 5. Form Components -------------------------------------------------------- */
+
+/**
+ * .input-field — Primary text input / select style.
+ */
+.input-field {
+  width: 100%;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  padding: 0 12px;
+  background-color: #ffffff;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 14px;
+}
+
+.input-field:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.input-field::placeholder {
+  color: var(--text-muted);
+}
+
+/**
+ * .erp-input — Taller input variant (44px) for prominent forms.
+ * Alias — prefer .input-field for consistency.
+ */
 .erp-input {
   width: 100%;
-  height: 44px; /* Taller, modern input */
+  height: 44px;
   padding: 0 16px;
   background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-input);
   color: var(--text-primary);
   font-size: 14px;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   outline: none;
 }
 
@@ -75,106 +166,21 @@ body {
   color: #94a3b8;
 }
 
-.erp-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 44px; /* Taller button */
-  padding: 0 20px;
-  background-color: var(--brand-primary);
-  color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2);
-}
+/* 6. Button System ---------------------------------------------------------- */
 
-.erp-button:hover:not(:disabled) {
-  background-color: var(--brand-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-}
-
-.erp-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Status Badges */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 12px;
-  border-radius: 999px; /* Pill shape */
-  font-size: 12px;
-  font-weight: 600;
-}
-.status-safe { background: #dcfce7; color: #16a34a; }
-.status-attention { background: #fef3c7; color: #d97706; }
-.status-critical, .status-expired { background: #fee2e2; color: #dc2626; }
-
-/* Dashboard Widgets */
-.widget-value {
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin-top: 12px;
-  letter-spacing: -0.03em;
-}
-.widget-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-/* Custom Scrollbar for modern look */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Keep glass classes neutral if they exist */
-.glass, .animate-fade-in {
-  backdrop-filter: blur(10px);
-}
-
-/* UI Overhaul styles */
-.glass-card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-modern);
-  box-shadow: var(--shadow-modern);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.glass-card:hover {
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06);
-}
-
+/**
+ * .btn-primary — Primary filled button (blue).
+ */
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  border-radius: 12px;
+  border-radius: var(--radius-input);
   padding: 8px 16px;
   background-color: var(--brand-primary);
   color: #ffffff;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   border: none;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
@@ -195,17 +201,20 @@ body {
   cursor: not-allowed;
 }
 
+/**
+ * .btn-secondary — Ghost/outline secondary button.
+ */
 .btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  border-radius: 12px;
+  border-radius: var(--radius-input);
   padding: 8px 16px;
   background-color: #ffffff;
   color: var(--text-secondary);
-  transition: all 0.2s ease;
-  border: 1px solid var(--border-light);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  border: 1px solid var(--border-color);
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
@@ -221,24 +230,111 @@ body {
   cursor: not-allowed;
 }
 
-.input-field {
-  width: 100%;
-  height: 40px;
-  border-radius: 10px;
-  border: 1px solid var(--border-color);
-  padding: 0 12px;
-  background-color: #ffffff;
-  color: var(--text-primary);
-  outline: none;
-  transition: all 0.2s ease;
+/**
+ * .erp-button — Taller (44px) button variant.
+ * Alias — prefer .btn-primary for new code.
+ */
+.erp-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 20px;
+  background-color: var(--brand-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-input);
   font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2);
 }
 
-.input-field:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+.erp-button:hover:not(:disabled) {
+  background-color: var(--brand-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
-.input-field::placeholder {
-  color: var(--text-muted);
+.erp-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 7. Status System ---------------------------------------------------------- */
+
+/**
+ * .status-badge — Base pill badge. Combine with modifier classes below.
+ */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-safe      { background: #dcfce7; color: #16a34a; }
+.status-attention { background: #fef3c7; color: #d97706; }
+.status-critical  { background: #fee2e2; color: #dc2626; }
+.status-expired   { background: #fee2e2; color: #dc2626; }
+
+/* 8. Dashboard Widgets ------------------------------------------------------ */
+
+.widget-value {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-top: 12px;
+  letter-spacing: -0.03em;
+}
+
+.widget-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* 9. Scrollbar -------------------------------------------------------------- */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 10. Animations & Utilities ----------------------------------------------- */
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Glassmorphism utility (legacy) */
+.glass {
+  backdrop-filter: blur(10px);
 }

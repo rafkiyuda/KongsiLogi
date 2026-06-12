@@ -120,7 +120,7 @@ export default function HargaPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 pt-16">
+      <main className="max-w-7xl mx-auto px-6 pt-36">
         <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2 text-center md:text-left">
           Penawaran pembelian bundle dan kustom sesuai kebutuhan Anda
         </h1>

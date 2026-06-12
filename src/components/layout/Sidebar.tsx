@@ -40,7 +40,6 @@ const menuItems = [
   { href: '/dashboard/pos', label: 'Point of Sale', icon: Store, access: 'pos' },
   { href: '/dashboard/stock-opname', label: 'Stock Opname', icon: ClipboardList, access: 'stockOpname' },
   { href: '/dashboard/reports', label: 'Analytics & Reports', icon: BarChart3, access: 'reports' },
-  { href: '/dashboard/notifications', label: 'System Alerts', icon: Bell, access: 'notifications' },
 ] as const
 
 
@@ -67,19 +66,25 @@ export default function Sidebar({ user }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile hamburger - Sticky top */}
-      <button
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-0 left-0 z-50 p-4 h-[60px] bg-white border-b border-slate-200 text-slate-800 w-full flex items-center justify-between shadow-sm"
-      >
+      {/* Mobile top bar */}
+      <div className="lg:hidden fixed top-0 left-0 w-full h-[60px] bg-[#0b1120] text-white flex items-center justify-between px-4 z-30 shadow-md">
         <div className="flex items-center gap-2">
-          <div className="relative w-8 h-8 shrink-0">
-            <Image src="/assets/logo/KongsiLogi.png" alt="KongsiLogi" fill className="object-contain" />
-          </div>
-          <span className="font-bold text-lg">KongsiLogi</span>
+          <Image src="/assets/logo/KongsiLogi.png" alt="Logo" width={32} height={32} className="object-contain" />
+          <span className="font-bold">KongsiLogi</span>
         </div>
-        {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/notifications" className="relative p-1 text-slate-300 hover:text-white transition-colors">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-0.5 right-0.5 flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border-2 border-[#0b1120]"></span>
+            </span>
+          </Link>
+          <button onClick={() => setMobileOpen(true)} className="p-1 text-slate-300 hover:text-white">
+            <Menu className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
 
       {/* Mobile overlay */}
       {mobileOpen && (

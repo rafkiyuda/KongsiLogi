@@ -1,6 +1,8 @@
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Sidebar from '@/components/layout/Sidebar'
+import Link from 'next/link'
+import { Bell } from 'lucide-react'
 
 export default async function DashboardLayout({
   children,
@@ -29,9 +31,20 @@ export default async function DashboardLayout({
             <span className="text-slate-900">Workspace</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-xs font-mono bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-100">
+            <span className="text-xs font-mono bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-100 hidden sm:inline-flex">
               v3.0.0-modern
             </span>
+            <Link 
+              href="/dashboard/notifications" 
+              className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+              title="System Alerts"
+            >
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-1 right-1.5 flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border-2 border-white"></span>
+              </span>
+            </Link>
           </div>
         </header>
 

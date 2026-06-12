@@ -26,8 +26,25 @@ interface CartItem {
   maxStock: number
 }
 
-const getProductImage = (category: string) => {
-  const images: Record<string, string> = {
+const getProductImage = (name: string, category: string) => {
+  const specificImages: Record<string, string> = {
+    'Bayam': 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=400&q=80',
+    'Kangkung': 'https://images.unsplash.com/photo-1595855768565-df4eb266ee14?auto=format&fit=crop&w=400&q=80',
+    'Sawi Putih': 'https://images.unsplash.com/photo-1557053912-9118e954b42b?auto=format&fit=crop&w=400&q=80',
+    'Selada': 'https://images.unsplash.com/photo-1622206151226-18ca2c9ab4a1?auto=format&fit=crop&w=400&q=80',
+    'Cabai Merah': 'https://images.unsplash.com/photo-1588040798782-019e072120e2?auto=format&fit=crop&w=400&q=80',
+    'Cabai Rawit': 'https://images.unsplash.com/photo-1589140228303-a26a57d07dc0?auto=format&fit=crop&w=400&q=80',
+    'Tomat': 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80',
+    'Wortel': 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=400&q=80',
+    'Brokoli': 'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?auto=format&fit=crop&w=400&q=80',
+    'Buncis': 'https://images.unsplash.com/photo-1533615433068-07e15ff07dd6?auto=format&fit=crop&w=400&q=80',
+    'Kol': 'https://images.unsplash.com/photo-1598030304671-5aa1d6f21128?auto=format&fit=crop&w=400&q=80',
+    'Daun Bawang': 'https://images.unsplash.com/photo-1603048297172-c92544798d5e?auto=format&fit=crop&w=400&q=80',
+  }
+
+  if (specificImages[name]) return specificImages[name]
+
+  const categoryImages: Record<string, string> = {
     'Sayur & Buah': 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=200&q=80',
     'Daging & Seafood': 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?auto=format&fit=crop&w=200&q=80',
     'Minuman': 'https://images.unsplash.com/photo-1556881286-fc6915169721?auto=format&fit=crop&w=200&q=80',
@@ -35,7 +52,7 @@ const getProductImage = (category: string) => {
     'Susu & Olahan': 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=200&q=80',
     'Frozen Food': 'https://images.unsplash.com/photo-1588169115783-05ec2c6a0c20?auto=format&fit=crop&w=200&q=80',
   }
-  return images[category] || 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=200&q=80'
+  return categoryImages[category] || 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=400&q=80'
 }
 
 export default function POSPage() {
@@ -183,7 +200,7 @@ export default function POSPage() {
                 <div className="w-full aspect-square rounded-xl overflow-hidden mb-2 relative group-hover:shadow-md transition-shadow">
                   {/* Fallback border if image fails to load quickly, but we use the img directly */}
                   <img 
-                    src={getProductImage(product.category)} 
+                    src={getProductImage(product.name, product.category)} 
                     alt={product.name}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     loading="lazy"

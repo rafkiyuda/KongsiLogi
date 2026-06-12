@@ -38,49 +38,67 @@ export default function LandingPage() {
       </header>
 
       {/* ----------------- HERO SECTION ----------------- */}
-      <section className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-36 pb-20 md:py-40 bg-gradient-to-b from-white to-slate-100 relative overflow-hidden">
+      <section className="px-4 pt-36 pb-20 md:py-40 bg-gradient-to-b from-white to-slate-100 relative overflow-hidden">
         {/* Abstract Background Elements */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#0090d7]/5 blur-3xl" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#01b5bd]/5 blur-3xl" />
 
-        <div className="inline-flex items-center rounded-full border border-[#0090d7]/20 px-3 py-1 text-xs font-semibold bg-[#0090d7]/5 text-[#0090d7] mb-8 shadow-sm">
-          ✨ Dilengkapi AI Demand Forecasting
-        </div>
-        
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight max-w-4xl mb-6 text-slate-900 leading-[1.1]">
-          Sistem Pengadaan Koperasi <br className="hidden md:block"/>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0090d7] to-[#01b5bd]">
-            Modern & Terpadu
-          </span>
-        </h1>
-        
-        <p className="text-lg md:text-xl text-slate-500 max-w-2xl mb-12 leading-relaxed">
-          KongsiLogi mempermudah koperasi dalam mengelola stok gudang, memantau permintaan, hingga automasi pengadaan barang dengan dukungan Artificial Intelligence.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto z-10">
-          <Link href="/login" className="inline-flex items-center justify-center whitespace-nowrap font-semibold transition-all bg-[#0090d7] text-white shadow-lg shadow-[#0090d7]/30 hover:bg-[#007bb8] rounded-full h-14 px-10 text-lg w-full sm:w-auto">
-            Mulai Sekarang Gratis
-          </Link>
-          <a href="#features">
-            <button className="inline-flex items-center justify-center whitespace-nowrap font-semibold transition-all border-2 border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 rounded-full h-14 px-10 text-lg w-full sm:w-auto">
-              Pelajari Fitur
-            </button>
-          </a>
-        </div>
-
-        {/* Video Placeholder (Mekari Style) */}
-        <div className="w-full max-w-5xl mx-auto mt-20 relative z-10 group cursor-pointer">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0090d7]/20 to-[#01b5bd]/20 blur-2xl rounded-[2rem] opacity-50 group-hover:opacity-70 transition-opacity duration-500"></div>
-          <div className="relative aspect-video bg-slate-900 rounded-[2rem] overflow-hidden border-8 border-white/50 shadow-2xl flex items-center justify-center">
-            {/* Thumbnail Placeholder */}
-            <div className="absolute inset-0 bg-slate-800 flex items-center justify-center">
-              <span className="text-slate-500 font-medium">Video Showcase Koperasi Anda (Tambahkan URL Video)</span>
+        <div className="container mx-auto max-w-7xl flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+          
+          {/* Sisi Kiri: Teks & CTA */}
+          <div className="flex-1 text-center lg:text-left z-10">
+            <div className="inline-flex items-center rounded-full border border-[#0090d7]/20 px-3 py-1 text-xs font-semibold bg-[#0090d7]/5 text-[#0090d7] mb-6 shadow-sm">
+              ✨ Dilengkapi AI Demand Forecasting
             </div>
-            {/* Play Button Overlay */}
-            <div className="relative w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform duration-300 shadow-xl">
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-[#0090d7]">
-                <Play className="w-8 h-8 ml-1" fill="currentColor" />
+            
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 text-slate-900 leading-[1.15]">
+              Sistem Pengadaan Koperasi <br className="hidden md:block"/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0090d7] to-[#01b5bd]">
+                Modern & Terpadu
+              </span>
+            </h1>
+            
+            <p className="text-lg text-slate-500 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              KongsiLogi mempermudah koperasi dalam mengelola stok gudang, memantau permintaan, hingga automasi pengadaan barang dengan dukungan Artificial Intelligence.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center lg:justify-start">
+              <Link href="/login" className="inline-flex items-center justify-center whitespace-nowrap font-semibold transition-all bg-[#0090d7] text-white shadow-lg shadow-[#0090d7]/30 hover:bg-[#007bb8] rounded-full h-14 px-8 text-lg w-full sm:w-auto">
+                Mulai Sekarang Gratis
+              </Link>
+              <a href="#features" className="w-full sm:w-auto">
+                <button className="inline-flex w-full items-center justify-center whitespace-nowrap font-semibold transition-all border-2 border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 rounded-full h-14 px-8 text-lg">
+                  Pelajari Fitur
+                </button>
+              </a>
+            </div>
+          </div>
+
+          {/* Sisi Kanan: Video Showcase */}
+          <div className="flex-1 w-full max-w-2xl lg:max-w-none relative z-10 group cursor-pointer mt-10 lg:mt-0">
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#0090d7]/20 to-[#01b5bd]/20 blur-2xl rounded-3xl opacity-50 group-hover:opacity-70 transition-opacity duration-500"></div>
+            <div className="relative aspect-video bg-slate-900 rounded-3xl overflow-hidden border-4 border-white/80 shadow-2xl flex items-center justify-center">
+              
+              {/* Actual Video Tag */}
+              <video 
+                className="absolute inset-0 w-full h-full object-cover opacity-80"
+                autoPlay 
+                muted 
+                loop 
+                playsInline
+                poster="/assets/images/video-thumbnail.jpg"
+              >
+                {/* Nanti letakkan video asli di public/assets/videos/showcase.mp4 */}
+                <source src="/assets/videos/showcase.mp4" type="video/mp4" />
+              </video>
+              
+              {/* Play Button Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center z-20">
+                <div className="relative w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform duration-300 shadow-xl">
+                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#0090d7]">
+                    <Play className="w-6 h-6 ml-1" fill="currentColor" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

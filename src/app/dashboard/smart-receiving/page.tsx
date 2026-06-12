@@ -70,6 +70,7 @@ export default function SmartReceivingPage() {
   const [allocations, setAllocations] = useState<Record<string, number>>({})
   const [allocating, setAllocating] = useState(false)
   const [putawaySuccess, setPutawaySuccess] = useState(false)
+  const [showAddRack, setShowAddRack] = useState(false)
 
   // Heatmap state
   const [selectedRack, setSelectedRack] = useState<RackData | null>(null)
@@ -202,6 +203,7 @@ export default function SmartReceivingPage() {
     setSelectedBatch(batch)
     setPutawaySuccess(false)
     setAllocations({})
+    setShowAddRack(false)
     try {
       const res = await fetch('/api/smart-receiving', {
         method: 'POST',
@@ -239,6 +241,7 @@ export default function SmartReceivingPage() {
         setSelectedBatch(null)
         setRecommendations([])
         setAllocations({})
+        setShowAddRack(false)
         fetchData()
       } else {
         alert(data.error || 'Gagal melakukan putaway')
@@ -591,7 +594,48 @@ export default function SmartReceivingPage() {
                         </div>
                       </div>
                     ))}
-                    <div className="flex items-center gap-2 mt-4 px-2">
+
+                    {/* Manual Add Rack Button */}
+                    {!showAddRack ? (
+                      <button 
+                        onClick={() => setShowAddRack(true)}
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 mt-2 px-2 transition-colors"
+                      >
+                        + Tambahkan rak lain secara manual
+                      </button>
+                    ) : (
+                      <div className="mt-4 p-3 rounded-xl border border-dashed border-gray-300 flex items-center gap-2 transition-all" style={{ background: 'var(--bg-tertiary)' }}>
+                        <select
+                          className="flex-1 px-3 py-2 rounded-lg border text-sm font-medium"
+                          style={{ background: 'var(--bg-primary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}
+                          onChange={e => {
+                            const rack = racks.find(r => r.id === e.target.value)
+                            if (rack && !recommendations.some(r => r.rackId === rack.id)) {
+                              setRecommendations(prev => [...prev, {
+                                rackId: rack.id,
+                                rackCode: rack.rackCode,
+                                zone: rack.zone,
+                                available: rack.capacityCrates - rack.usedCrates,
+                                suggested: 0
+                              }])
+                              setShowAddRack(false)
+                            }
+                          }}
+                        >
+                          <option value="">Pilih rak...</option>
+                          {racks.filter(r => !recommendations.some(rec => rec.rackId === r.id)).map(r => (
+                            <option key={r.id} value={r.id}>
+                              {r.rackCode} ({r.zone}) - Sisa: {r.capacityCrates - r.usedCrates} crate
+                            </option>
+                          ))}
+                        </select>
+                        <button onClick={() => setShowAddRack(false)} className="text-gray-400 hover:text-gray-600 p-1">
+                          <XCircle className="w-5 h-5" />
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 mt-4 px-2 pt-2 border-t" style={{ borderColor: 'var(--border-primary)' }}>
                       <input type="checkbox" id="adminOverride" checked={adminOverride} onChange={e => setAdminOverride(e.target.checked)} className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                       <label htmlFor="adminOverride" className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Admin Override (Izinkan alokasi melebihi kapasitas)</label>
                     </div>

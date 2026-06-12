@@ -3,7 +3,7 @@ import { MessageCircle } from 'lucide-react'
 
 export function FloatingWhatsApp() {
   return (
-    <Link 
+    <Link
       href="https://wa.me/6285283971917"
       target="_blank"
       rel="noopener noreferrer"
@@ -11,12 +11,12 @@ export function FloatingWhatsApp() {
       aria-label="Chat WhatsApp"
     >
       <MessageCircle className="w-7 h-7" />
-      
+
       {/* Tooltip */}
       <span className="absolute right-16 px-3 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap shadow-lg">
         Tanya Sales via WhatsApp
       </span>
-      
+
       {/* Ping Indicator */}
       <span className="absolute -top-1 -right-1 flex h-4 w-4">
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>

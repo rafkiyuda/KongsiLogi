@@ -84,11 +84,11 @@ export default function HargaPage() {
 
   // WA Link builder
   const buildWaLink = () => {
-    if (selectedProducts.length === 0) return 'https://wa.me/6281234567890?text=Halo%20Tim%20Sales%20KongsiLogi,%20saya%20tertarik%20dengan%20produk%20Anda.'
+    if (selectedProducts.length === 0) return 'https://wa.me/6285283971917?text=Halo%20Tim%20Sales%20KongsiLogi,%20saya%20tertarik%20dengan%20produk%20Anda.'
     const productNames = selectedProducts.map(p => `- ${p.name}`).join('%0A')
     const totalFormatted = formatRupiah(totalPrice).replace(/\s/g, '%20')
     const text = `Halo Tim Sales KongsiLogi,%0ASaya tertarik untuk berlangganan bundle berikut:%0A${productNames}%0A%0AEstimasi Total: ${totalFormatted}/bulan.%0AMohon info lebih lanjut.`
-    return `https://wa.me/6281234567890?text=${text}`
+    return `https://wa.me/6285283971917?text=${text}`
   }
 
   return (
@@ -125,7 +125,7 @@ export default function HargaPage() {
           Penawaran pembelian bundle dan kustom sesuai kebutuhan Anda
         </h1>
         <p className="text-slate-500 mb-12 text-center md:text-left">
-          Temukan pilihan paket harga yang tepat untuk kebutuhan bisnis logistik Anda
+          Temukan pilihan paket harga yang tepat untuk kebutuhan bisnis logistik Anda pakai wa +6285283971917
         </p>
 
         <div className="flex flex-col lg:flex-row gap-8">

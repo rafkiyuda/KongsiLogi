@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   ArrowRight, BarChart3, Package, Settings,
-  ShieldCheck, Star, Users, Building2, Truck, Check
+  ShieldCheck, Star, Users, Building2, Truck, Check, Play
 } from 'lucide-react'
 
 export default function LandingPage() {
@@ -69,8 +69,25 @@ export default function LandingPage() {
           </a>
         </div>
 
+        {/* Video Placeholder (Mekari Style) */}
+        <div className="w-full max-w-5xl mx-auto mt-20 relative z-10 group cursor-pointer">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0090d7]/20 to-[#01b5bd]/20 blur-2xl rounded-[2rem] opacity-50 group-hover:opacity-70 transition-opacity duration-500"></div>
+          <div className="relative aspect-video bg-slate-900 rounded-[2rem] overflow-hidden border-8 border-white/50 shadow-2xl flex items-center justify-center">
+            {/* Thumbnail Placeholder */}
+            <div className="absolute inset-0 bg-slate-800 flex items-center justify-center">
+              <span className="text-slate-500 font-medium">Video Showcase Koperasi Anda (Tambahkan URL Video)</span>
+            </div>
+            {/* Play Button Overlay */}
+            <div className="relative w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform duration-300 shadow-xl">
+              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-[#0090d7]">
+                <Play className="w-8 h-8 ml-1" fill="currentColor" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Social Proof */}
-        <div className="mt-24 text-sm font-medium text-slate-400">
+        <div className="mt-20 text-sm font-medium text-slate-400">
           <p className="mb-6 uppercase tracking-wider">Dipercaya Oleh Berbagai Koperasi & Ritel</p>
           <div className="flex flex-wrap justify-center gap-8 md:gap-12 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
             <div className="flex items-center gap-2 text-slate-600"><Building2 className="h-5 w-5" /> Koperasi Makmur</div>

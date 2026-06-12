@@ -39,9 +39,9 @@ export default function LandingPage() {
 
       {/* ----------------- HERO SECTION ----------------- */}
       <section className="px-4 pt-36 pb-20 md:py-40 bg-gradient-to-b from-white to-slate-100 relative overflow-hidden">
-        {/* Abstract Background Elements */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#0090d7]/5 blur-3xl" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#01b5bd]/5 blur-3xl" />
+        {/* Abstract Background Elements with Animations */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#0090d7]/10 blur-3xl animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#01b5bd]/10 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
 
         <div className="container mx-auto max-w-7xl flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
           
@@ -82,7 +82,7 @@ export default function LandingPage() {
               {/* Actual Video Tag */}
               <video 
                 className="absolute inset-0 w-full h-full object-cover opacity-80"
-                autoPlay 
+                controls
                 muted 
                 loop 
                 playsInline
@@ -92,25 +92,21 @@ export default function LandingPage() {
                 <source src="/assets/videos/showcase.mp4" type="video/mp4" />
               </video>
               
-              {/* Play Button Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center z-20">
-                <div className="relative w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform duration-300 shadow-xl">
-                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#0090d7]">
-                    <Play className="w-6 h-6 ml-1" fill="currentColor" />
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Social Proof */}
-        <div className="mt-20 text-sm font-medium text-slate-400">
-          <p className="mb-6 uppercase tracking-wider">Dipercaya Oleh Berbagai Koperasi & Ritel</p>
-          <div className="flex flex-wrap justify-center gap-8 md:gap-12 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-            <div className="flex items-center gap-2 text-slate-600"><Building2 className="h-5 w-5" /> Koperasi Makmur</div>
-            <div className="flex items-center gap-2 text-slate-600"><Truck className="h-5 w-5" /> IndoLogistics</div>
-            <div className="flex items-center gap-2 text-slate-600"><Package className="h-5 w-5" /> RetailHub</div>
+      {/* Social Proof (Moved out of hero section) */}
+      <section className="py-12 bg-white border-b border-slate-100">
+        <div className="container mx-auto max-w-7xl px-6">
+          <div className="text-sm font-medium text-slate-400 text-center">
+            <p className="mb-6 uppercase tracking-wider">Dipercaya Oleh Berbagai Koperasi & Ritel</p>
+            <div className="flex flex-wrap justify-center gap-8 md:gap-12 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+              <div className="flex items-center gap-2 text-slate-600"><Building2 className="h-5 w-5" /> Koperasi Makmur</div>
+              <div className="flex items-center gap-2 text-slate-600"><Truck className="h-5 w-5" /> IndoLogistics</div>
+              <div className="flex items-center gap-2 text-slate-600"><Package className="h-5 w-5" /> RetailHub</div>
+            </div>
           </div>
         </div>
       </section>
@@ -125,30 +121,39 @@ export default function LandingPage() {
           
           <div className="grid md:grid-cols-3 gap-8">
             {/* Feature 1 */}
-            <div className="p-8 rounded-3xl border border-slate-100 bg-white shadow-sm hover:shadow-xl hover:border-[#0090d7]/20 transition-all duration-300 group">
-              <div className="w-14 h-14 rounded-2xl bg-[#0090d7]/10 flex items-center justify-center text-[#0090d7] mb-6 group-hover:scale-110 transition-transform">
-                <BarChart3 className="w-7 h-7" />
+            <div className="relative overflow-hidden p-8 rounded-3xl border border-slate-700 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group bg-[url('/assets/images/bg-analytics.png')] bg-cover bg-center h-[400px] flex flex-col justify-end">
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-900/40 z-0 group-hover:via-slate-900/70 transition-colors"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 rounded-2xl bg-[#0090d7]/20 border border-[#0090d7]/30 backdrop-blur-sm flex items-center justify-center text-[#0090d7] mb-6 group-hover:scale-110 transition-transform">
+                  <BarChart3 className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-white">Real-time Analytics</h3>
+                <p className="text-slate-300 leading-relaxed">Pantau pergerakan stok, tren penjualan, dan performa koperasi Anda dalam satu dashboard intuitif.</p>
               </div>
-              <h3 className="text-xl font-bold mb-3 text-slate-900">Real-time Analytics</h3>
-              <p className="text-slate-500 leading-relaxed">Pantau pergerakan stok, tren penjualan, dan performa koperasi Anda dalam satu dashboard intuitif.</p>
             </div>
             
             {/* Feature 2 */}
-            <div className="p-8 rounded-3xl border border-slate-100 bg-white shadow-sm hover:shadow-xl hover:border-[#01b5bd]/20 transition-all duration-300 group">
-              <div className="w-14 h-14 rounded-2xl bg-[#01b5bd]/10 flex items-center justify-center text-[#01b5bd] mb-6 group-hover:scale-110 transition-transform">
-                <Settings className="w-7 h-7" />
+            <div className="relative overflow-hidden p-8 rounded-3xl border border-slate-700 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group bg-[url('/assets/images/bg-automation.png')] bg-cover bg-center h-[400px] flex flex-col justify-end">
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-900/40 z-0 group-hover:via-slate-900/70 transition-colors"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 rounded-2xl bg-[#01b5bd]/20 border border-[#01b5bd]/30 backdrop-blur-sm flex items-center justify-center text-[#01b5bd] mb-6 group-hover:scale-110 transition-transform">
+                  <Settings className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-white">AI Demand Forecasting</h3>
+                <p className="text-slate-300 leading-relaxed">Prediksi permintaan barang bulan depan secara otomatis berkat analisis machine learning cerdas.</p>
               </div>
-              <h3 className="text-xl font-bold mb-3 text-slate-900">AI Demand Forecasting</h3>
-              <p className="text-slate-500 leading-relaxed">Prediksi permintaan barang bulan depan secara otomatis berkat analisis machine learning cerdas.</p>
             </div>
             
             {/* Feature 3 */}
-            <div className="p-8 rounded-3xl border border-slate-100 bg-white shadow-sm hover:shadow-xl hover:border-[#0090d7]/20 transition-all duration-300 group">
-              <div className="w-14 h-14 rounded-2xl bg-[#0090d7]/10 flex items-center justify-center text-[#0090d7] mb-6 group-hover:scale-110 transition-transform">
-                <Package className="w-7 h-7" />
+            <div className="relative overflow-hidden p-8 rounded-3xl border border-slate-700 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group bg-[url('/assets/images/bg-pos.png')] bg-cover bg-center h-[400px] flex flex-col justify-end">
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-900/40 z-0 group-hover:via-slate-900/70 transition-colors"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 rounded-2xl bg-[#0090d7]/20 border border-[#0090d7]/30 backdrop-blur-sm flex items-center justify-center text-[#0090d7] mb-6 group-hover:scale-110 transition-transform">
+                  <Package className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-white">Smart Procurement</h3>
+                <p className="text-slate-300 leading-relaxed">Otomatisasi pembuatan Purchase Request (PR) ketika stok menipis agar tidak ada lagi barang kosong.</p>
               </div>
-              <h3 className="text-xl font-bold mb-3 text-slate-900">Smart Procurement</h3>
-              <p className="text-slate-500 leading-relaxed">Otomatisasi pembuatan Purchase Request (PR) ketika stok menipis agar tidak ada lagi barang kosong.</p>
             </div>
           </div>
         </div>

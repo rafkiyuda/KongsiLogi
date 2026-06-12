@@ -59,7 +59,7 @@ export default function LandingPage() {
             </h1>
             
             <p className="text-lg text-slate-500 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-              KongsiLogi mempermudah koperasi dalam mengelola stok gudang, memantau permintaan, hingga automasi pengadaan barang dengan dukungan Artificial Intelligence.
+              KongsiLogi mempermudah koperasi dalam mengelola operasional Gudang Umum maupun spesialisasi <strong>Cold Storage</strong>, memantau permintaan rantai dingin, hingga automasi pengadaan barang dengan dukungan Artificial Intelligence.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center lg:justify-start">
@@ -116,7 +116,7 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Segala yang Anda Butuhkan untuk Operasional</h2>
-            <p className="text-slate-500 text-lg">Platform all-in-one dari gudang penyimpanan hingga Point of Sale (POS).</p>
+            <p className="text-slate-500 text-lg">Platform all-in-one yang tangguh menangani manajemen <strong>Cold Storage</strong> hingga Point of Sale (POS) ritel koperasi Anda.</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">

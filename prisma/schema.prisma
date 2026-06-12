@@ -50,6 +50,12 @@ enum NotificationType {
   GENERAL
 }
 
+enum RfidTagStatus {
+  AVAILABLE
+  ASSIGNED
+  DECOMMISSIONED
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -138,6 +144,8 @@ model InventoryBatch {
   supplier              Supplier?              @relation(fields: [supplierId], references: [id])
   salesTransactionItems SalesTransactionItem[]
   stockAuditItems       StockAuditItem[]
+  rfidTags              RfidTag[]
+  batchLocations        BatchLocation[]
 
   @@index([productId])
   @@index([supplierId])
@@ -266,4 +274,60 @@ model Notification {
   @@index([userId])
   @@index([isRead])
   @@map("notifications")
+}
+
+model RfidTag {
+  id             String        @id @default(cuid())
+  tagCode        String        @unique @map("tag_code")
+  status         RfidTagStatus @default(AVAILABLE)
+  currentBatchId String?       @map("current_batch_id")
+  lastScannedAt  DateTime?     @map("last_scanned_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  currentBatch  InventoryBatch? @relation(fields: [currentBatchId], references: [id])
+  receivingLogs ReceivingLog[]
+
+  @@map("rfid_tags")
+}
+
+model Rack {
+  id             String  @id @default(cuid())
+  rackCode       String  @unique @map("rack_code")
+  zone           String  @default("Cold Storage A")
+  capacityCrates Int     @map("capacity_crates")
+  isActive       Boolean @default(true) @map("is_active")
+
+  batchLocations BatchLocation[]
+
+  @@map("racks")
+}
+
+model BatchLocation {
+  id       String   @id @default(cuid())
+  batchId  String   @map("batch_id")
+  rackId   String   @map("rack_id")
+  quantity Int
+  placedAt DateTime @default(now()) @map("placed_at")
+
+  batch InventoryBatch @relation(fields: [batchId], references: [id])
+  rack  Rack           @relation(fields: [rackId], references: [id])
+
+  @@unique([batchId, rackId])
+  @@map("batch_locations")
+}
+
+model ReceivingLog {
+  id          String   @id @default(cuid())
+  rfidTagId   String   @map("rfid_tag_id")
+  batchCode   String   @map("batch_code")
+  productName String   @map("product_name")
+  quantity    Int
+  action      String
+  operatorId  String?  @map("operator_id")
+  note        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  rfidTag RfidTag @relation(fields: [rfidTagId], references: [id])
+
+  @@map("receiving_logs")
 }

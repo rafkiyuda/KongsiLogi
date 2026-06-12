@@ -133,12 +133,15 @@ export type NotificationType =
 
 export type StockStatus = 'safe' | 'attention' | 'critical' | 'expired'
 
+export type RfidTagStatusType = 'AVAILABLE' | 'ASSIGNED' | 'DECOMMISSIONED'
+
 // --- Role Access -------------------------------------------------------------
 
 export interface RoleAccessMap {
   dashboard: boolean
   inventory: boolean
   coldStorage: boolean
+  smartReceiving: boolean
   procurement: boolean
   pos: boolean
   stockOpname: boolean
@@ -228,4 +231,38 @@ export interface MockSupplier {
   priceLevel: string
   consistency: string
   onTimeRate: string
+}
+
+// --- RFID / Smart Receiving Types -------------------------------------------
+
+export interface RfidTag {
+  id: string
+  tagCode: string
+  status: RfidTagStatusType
+  currentBatchId: string | null
+  lastScannedAt: string | null
+  createdAt: string
+  currentBatch?: Pick<InventoryBatch, 'batchCode'> & { product?: Pick<Product, 'name'> } | null
+}
+
+export interface RackData {
+  id: string
+  rackCode: string
+  zone: string
+  capacityCrates: number
+  isActive: boolean
+  usedCrates: number
+  occupancyPercent: number
+  batches: Array<{ batchCode: string; productName: string; quantity: number; placedAt: string }>
+}
+
+export interface ReceivingLogEntry {
+  id: string
+  batchCode: string
+  productName: string
+  quantity: number
+  action: string
+  note: string | null
+  createdAt: string
+  rfidTag: Pick<RfidTag, 'tagCode'>
 }

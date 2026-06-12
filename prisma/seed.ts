@@ -7,6 +7,10 @@ async function main() {
   console.log('🌱 Seeding database...')
 
   // Clear existing data
+  await prisma.receivingLog.deleteMany()
+  await prisma.batchLocation.deleteMany()
+  await prisma.rfidTag.deleteMany()
+  await prisma.rack.deleteMany()
   await prisma.notification.deleteMany()
   await prisma.stockAuditItem.deleteMany()
   await prisma.stockAudit.deleteMany()
@@ -296,6 +300,63 @@ async function main() {
   ])
 
   console.log('✅ Notifications created')
+
+  // ===== RFID TAGS =====
+  const rfidTags = await Promise.all([
+    prisma.rfidTag.create({ data: { tagCode: 'TAG-0001', status: 'ASSIGNED', currentBatchId: batches[0].id, lastScannedAt: daysAgo(4) } }),
+    prisma.rfidTag.create({ data: { tagCode: 'TAG-0002', status: 'ASSIGNED', currentBatchId: batches[1].id, lastScannedAt: daysAgo(1) } }),
+    prisma.rfidTag.create({ data: { tagCode: 'TAG-0003', status: 'ASSIGNED', currentBatchId: batches[3].id, lastScannedAt: daysAgo(2) } }),
+    prisma.rfidTag.create({ data: { tagCode: 'TAG-0004', status: 'AVAILABLE', lastScannedAt: daysAgo(5) } }),
+    prisma.rfidTag.create({ data: { tagCode: 'TAG-0005', status: 'AVAILABLE' } }),
+    prisma.rfidTag.create({ data: { tagCode: 'TAG-0006', status: 'AVAILABLE' } }),
+    prisma.rfidTag.create({ data: { tagCode: 'TAG-0007', status: 'ASSIGNED', currentBatchId: batches[5].id, lastScannedAt: daysAgo(5) } }),
+    prisma.rfidTag.create({ data: { tagCode: 'TAG-0008', status: 'AVAILABLE' } }),
+    prisma.rfidTag.create({ data: { tagCode: 'TAG-0009', status: 'DECOMMISSIONED' } }),
+    prisma.rfidTag.create({ data: { tagCode: 'TAG-0010', status: 'AVAILABLE' } }),
+  ])
+
+  console.log('✅ RFID Tags created')
+
+  // ===== RACKS =====
+  const rackList = await Promise.all([
+    prisma.rack.create({ data: { rackCode: 'RACK-01', zone: 'Cold Storage A', capacityCrates: 30 } }),
+    prisma.rack.create({ data: { rackCode: 'RACK-02', zone: 'Cold Storage A', capacityCrates: 25 } }),
+    prisma.rack.create({ data: { rackCode: 'RACK-03', zone: 'Cold Storage B', capacityCrates: 40 } }),
+    prisma.rack.create({ data: { rackCode: 'RACK-04', zone: 'Cold Storage B', capacityCrates: 35 } }),
+    prisma.rack.create({ data: { rackCode: 'RACK-05', zone: 'Cold Storage C', capacityCrates: 50 } }),
+  ])
+
+  console.log('✅ Racks created')
+
+  // ===== BATCH LOCATIONS =====
+  await Promise.all([
+    prisma.batchLocation.create({ data: { batchId: batches[0].id, rackId: rackList[0].id, quantity: 8, placedAt: daysAgo(4) } }),
+    prisma.batchLocation.create({ data: { batchId: batches[1].id, rackId: rackList[0].id, quantity: 18, placedAt: daysAgo(1) } }),
+    prisma.batchLocation.create({ data: { batchId: batches[3].id, rackId: rackList[1].id, quantity: 22, placedAt: daysAgo(2) } }),
+    prisma.batchLocation.create({ data: { batchId: batches[5].id, rackId: rackList[2].id, quantity: 3, placedAt: daysAgo(5) } }),
+    prisma.batchLocation.create({ data: { batchId: batches[6].id, rackId: rackList[2].id, quantity: 15, placedAt: daysAgo(0) } }),
+    prisma.batchLocation.create({ data: { batchId: batches[8].id, rackId: rackList[3].id, quantity: 12, placedAt: daysAgo(3) } }),
+    prisma.batchLocation.create({ data: { batchId: batches[10].id, rackId: rackList[4].id, quantity: 15, placedAt: daysAgo(6) } }),
+    prisma.batchLocation.create({ data: { batchId: batches[13].id, rackId: rackList[4].id, quantity: 28, placedAt: daysAgo(4) } }),
+  ])
+
+  console.log('✅ Batch Locations created')
+
+  // ===== RECEIVING LOGS =====
+  await Promise.all([
+    prisma.receivingLog.create({ data: { rfidTagId: rfidTags[0].id, batchCode: 'BAY-20240601-A1B2', productName: 'Bayam', quantity: 25, action: 'SCAN_IN', note: 'Batch diterima dari Tani Makmur Lembang', createdAt: daysAgo(4) } }),
+    prisma.receivingLog.create({ data: { rfidTagId: rfidTags[0].id, batchCode: 'BAY-20240601-A1B2', productName: 'Bayam', quantity: 25, action: 'PUTAWAY', note: 'Dialokasikan ke RACK-01', createdAt: daysAgo(4) } }),
+    prisma.receivingLog.create({ data: { rfidTagId: rfidTags[1].id, batchCode: 'BAY-20240603-C3D4', productName: 'Bayam', quantity: 20, action: 'SCAN_IN', note: 'Batch diterima dari Tani Makmur Lembang', createdAt: daysAgo(1) } }),
+    prisma.receivingLog.create({ data: { rfidTagId: rfidTags[1].id, batchCode: 'BAY-20240603-C3D4', productName: 'Bayam', quantity: 20, action: 'PUTAWAY', note: 'Dialokasikan ke RACK-01', createdAt: daysAgo(1) } }),
+    prisma.receivingLog.create({ data: { rfidTagId: rfidTags[2].id, batchCode: 'SAW-20240601-G7H8', productName: 'Sawi Putih', quantity: 30, action: 'SCAN_IN', note: 'Batch diterima dari Tani Makmur Lembang', createdAt: daysAgo(2) } }),
+    prisma.receivingLog.create({ data: { rfidTagId: rfidTags[2].id, batchCode: 'SAW-20240601-G7H8', productName: 'Sawi Putih', quantity: 30, action: 'PUTAWAY', note: 'Dialokasikan ke RACK-02', createdAt: daysAgo(2) } }),
+    prisma.receivingLog.create({ data: { rfidTagId: rfidTags[6].id, batchCode: 'CAB-20240530-K1L2', productName: 'Cabai Merah', quantity: 20, action: 'SCAN_IN', note: 'Batch diterima dari UD Berkah Tani', createdAt: daysAgo(5) } }),
+    prisma.receivingLog.create({ data: { rfidTagId: rfidTags[3].id, batchCode: 'WOR-20240528-U1V2', productName: 'Wortel', quantity: 30, action: 'SCAN_IN', note: 'Batch diterima dari PT Agro Nusantara', createdAt: daysAgo(6) } }),
+    prisma.receivingLog.create({ data: { rfidTagId: rfidTags[3].id, batchCode: 'WOR-20240528-U1V2', productName: 'Wortel', quantity: 30, action: 'PUTAWAY', note: 'Dialokasikan ke RACK-05', createdAt: daysAgo(6) } }),
+    prisma.receivingLog.create({ data: { rfidTagId: rfidTags[3].id, batchCode: 'WOR-20240528-U1V2', productName: 'Wortel', quantity: 0, action: 'RELEASE', note: 'Tag dilepas dan siap digunakan kembali', createdAt: daysAgo(5) } }),
+  ])
+
+  console.log('✅ Receiving Logs created')
   console.log('🎉 Seeding completed successfully!')
 }
 

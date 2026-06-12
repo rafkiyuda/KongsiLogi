@@ -100,7 +100,7 @@ export default function InventoryPage() {
             <Sparkles className="w-4 h-4" />
             <span className="hidden sm:inline">Demand Forecasting AI</span>
           </button>
-          <Link href="/dashboard/inventory/new" className="btn-primary flex items-center gap-2 bg-[var(--accent-primary)]">
+          <Link href="/dashboard/inventory/add" className="btn-primary flex items-center gap-2 bg-[var(--accent-primary)]">
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Tambah Produk</span>
           </Link>

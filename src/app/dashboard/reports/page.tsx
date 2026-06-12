@@ -53,7 +53,10 @@ export default function ReportsPage() {
   ]
 
   const handleExport = (format: 'pdf' | 'excel') => {
-    alert(`Export ${format.toUpperCase()} dalam pengembangan. Data sudah siap untuk diunduh.`)
+    const params = new URLSearchParams({ type: reportType, format })
+    if (dateFrom) params.set('from', dateFrom)
+    if (dateTo) params.set('to', dateTo)
+    window.open(`/api/reports/download?${params.toString()}`, '_blank')
   }
 
   return (

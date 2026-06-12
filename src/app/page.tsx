@@ -155,117 +155,22 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ----------------- PRICING SECTION (Mekari Style) ----------------- */}
-      <section id="pricing" className="py-24 bg-slate-50 px-6 border-t border-slate-200">
-        <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Satu Solusi Untuk Segala Skala Operasional</h2>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto">Pilih paket berlangganan yang paling sesuai dengan kebutuhan logistik dan manajemen koperasi Anda. Tanpa biaya tersembunyi.</p>
-          </div>
-          
-          <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* 1. Essential Tier */}
-            <div className="p-8 rounded-2xl border border-slate-200 flex flex-col bg-white shadow-sm hover:shadow-md transition-shadow">
-              <div className="mb-6">
-                <h3 className="text-xl font-bold text-slate-800 mb-1">Essential</h3>
-                <p className="text-sm text-slate-500 mb-6">Untuk koperasi yang baru mulai go-digital.</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-slate-900">Gratis</span>
-                </div>
-                <p className="text-sm text-slate-500 mt-2">Selamanya, tanpa batas waktu.</p>
-              </div>
-              <Link href="/login" className="w-full inline-flex items-center justify-center border-2 border-slate-200 text-slate-700 font-bold hover:border-[#0090d7] hover:text-[#0090d7] transition-colors h-12 rounded-lg mb-8">
-                Mulai Gratis
-              </Link>
-              <div className="pt-6 border-t border-slate-100 flex-1">
-                <p className="text-sm font-bold text-slate-900 mb-4">Fitur yang didapatkan:</p>
-                <ul className="space-y-4">
-                  {[
-                    'Manajemen 1 Gudang',
-                    'Akses POS Kasir (1 Outlet)',
-                    'Pencatatan Stok Dasar',
-                    'Laporan Penjualan Bulanan',
-                    'Batas 500 Transaksi / bulan',
-                    'Support via Email'
-                  ].map((feature, i) => (
-                    <li key={i} className="flex items-start gap-3 text-slate-600 text-sm leading-relaxed">
-                      <Check className="h-5 w-5 text-slate-400 shrink-0 mt-0.5" /> {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            
-            {/* 2. Professional Tier (Highlighted) */}
-            <div className="p-8 rounded-2xl border-2 border-[#0090d7] flex flex-col bg-white shadow-xl shadow-[#0090d7]/10 relative transform lg:-translate-y-4">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#0090d7] text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
-                Paling Diminati
-              </div>
-              <div className="mb-6">
-                <h3 className="text-xl font-bold text-slate-800 mb-1">Professional</h3>
-                <p className="text-sm text-slate-500 mb-6">Cocok untuk operasi menengah yang butuh automasi.</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-slate-400 line-through mr-2">Rp 799rb</span>
-                  <span className="text-4xl font-extrabold text-[#0090d7]">Rp 499rb</span>
-                </div>
-                <p className="text-sm text-slate-500 mt-2">/ bulan (ditagih tahunan)</p>
-              </div>
-              <Link href="/login" className="w-full inline-flex items-center justify-center bg-[#0090d7] text-white font-bold hover:bg-[#007bb8] shadow-md transition-colors h-12 rounded-lg mb-8">
-                Coba Gratis 14 Hari
-              </Link>
-              <div className="pt-6 border-t border-slate-100 flex-1">
-                <p className="text-sm font-bold text-[#0090d7] mb-4">Semua fitur Essential, ditambah:</p>
-                <ul className="space-y-4">
-                  {[
-                    'Manajemen Multi-Gudang (Hingga 5)',
-                    'Multi-Outlet POS Kasir',
-                    'AI Demand Forecasting (Standard)',
-                    'Automasi Purchase Request',
-                    'Audit & Stock Opname Cepat',
-                    'Tanpa Batas Transaksi',
-                    'Support Prioritas via WhatsApp'
-                  ].map((feature, i) => (
-                    <li key={i} className="flex items-start gap-3 text-slate-700 text-sm leading-relaxed font-medium">
-                      <Check className="h-5 w-5 text-[#0090d7] shrink-0 mt-0.5" /> {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* 3. Enterprise Tier */}
-            <div className="p-8 rounded-2xl border border-slate-200 flex flex-col bg-white shadow-sm hover:shadow-md transition-shadow">
-              <div className="mb-6">
-                <h3 className="text-xl font-bold text-slate-800 mb-1">Enterprise</h3>
-                <p className="text-sm text-slate-500 mb-6">Untuk korporasi dan jaringan koperasi berskala nasional.</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-slate-900">Custom</span>
-                </div>
-                <p className="text-sm text-slate-500 mt-2">Disesuaikan dengan volume bisnis.</p>
-              </div>
-              <Link href="/login" className="w-full inline-flex items-center justify-center border-2 border-slate-200 text-slate-700 font-bold hover:border-[#01b5bd] hover:text-[#01b5bd] transition-colors h-12 rounded-lg mb-8">
-                Hubungi Tim Sales
-              </Link>
-              <div className="pt-6 border-t border-slate-100 flex-1">
-                <p className="text-sm font-bold text-[#01b5bd] mb-4">Semua fitur Professional, ditambah:</p>
-                <ul className="space-y-4">
-                  {[
-                    'Gudang & Outlet Tidak Terbatas',
-                    'AI Demand Forecasting (Advanced)',
-                    'Integrasi API (ERP Pihak Ketiga)',
-                    'Sistem Cold-Storage Management',
-                    'Dedicated Account Manager',
-                    'SLA Uptime 99.9%',
-                    'On-Premise Deployment (Opsional)'
-                  ].map((feature, i) => (
-                    <li key={i} className="flex items-start gap-3 text-slate-600 text-sm leading-relaxed">
-                      <Check className="h-5 w-5 text-[#01b5bd] shrink-0 mt-0.5" /> {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
+      {/* ----------------- PRICING CTA ----------------- */}
+      <section id="pricing" className="py-24 bg-[#0090d7] px-6 relative overflow-hidden">
+        {/* Abstract Background Element */}
+        <div className="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-white/10 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -ml-32 -mb-32 w-96 h-96 rounded-full bg-[#01b5bd]/40 blur-3xl"></div>
+        
+        <div className="container mx-auto max-w-4xl text-center relative z-10">
+          <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-6 leading-tight">
+            Penawaran Bundle Kustom <br/>Sesuai Kebutuhan Anda
+          </h2>
+          <p className="text-blue-100 text-lg md:text-xl max-w-2xl mx-auto mb-10">
+            Pilih dan rakit sendiri modul KongsiLogi yang paling sesuai dengan skala operasi koperasi Anda. Bayar hanya untuk fitur yang Anda gunakan.
+          </p>
+          <Link href="/harga" className="inline-flex items-center gap-2 bg-white text-[#0090d7] font-extrabold text-lg px-8 py-4 rounded-full shadow-xl hover:bg-slate-50 hover:scale-105 transition-all">
+            Lihat Pilihan Harga & Bundle <ArrowRight className="w-5 h-5" />
+          </Link>
         </div>
       </section>
 

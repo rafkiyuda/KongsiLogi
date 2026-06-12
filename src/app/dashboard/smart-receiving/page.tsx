@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import {
   Radio, ScanLine, Package, MapPin, Activity, Loader2,
   CheckCircle2, AlertTriangle, XCircle, RefreshCw, ArrowRight,
-  Wifi, WifiOff, Tag, Box, Clock, ChevronRight, Warehouse
+  Wifi, WifiOff, Tag, Box, Clock, ChevronRight, Warehouse, Trash2
 } from 'lucide-react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -576,7 +576,19 @@ export default function SmartReceivingPage() {
                         style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)' }}>
                         <div className="flex items-center justify-between mb-2">
                           <div>
-                            <p className="font-bold" style={{ color: 'var(--text-primary)' }}>{rec.rackCode}</p>
+                            <p className="font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                              {rec.rackCode}
+                              <button
+                                onClick={() => {
+                                  setRecommendations(prev => prev.filter(r => r.rackId !== rec.rackId))
+                                  setAllocations(prev => { const next = { ...prev }; delete next[rec.rackId]; return next })
+                                }}
+                                className="text-gray-400 hover:text-red-500 p-0.5 rounded transition-colors"
+                                title="Hapus dari daftar alokasi"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </p>
                             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{rec.zone} • Sisa kapasitas: {rec.available} crate</p>
                           </div>
                           <div className="flex items-center gap-2">

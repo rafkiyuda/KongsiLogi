@@ -88,9 +88,9 @@ export default function Sidebar({ user }: SidebarProps) {
 
       {/* Sidebar - NO LONGER FIXED on Desktop, it's a Flex child! */}
       <aside
-        className={`bg-[#0f172a] text-white z-40 flex flex-col transition-all duration-300 ease-in-out shrink-0 relative
+        className={`bg-[#0f172a] text-white z-40 flex flex-col transition-all duration-300 ease-in-out shrink-0
           ${collapsed ? 'w-[80px]' : 'w-[280px]'} 
-          ${mobileOpen ? 'fixed top-0 left-0 h-[100dvh] translate-x-0' : 'fixed top-0 left-0 h-[100dvh] -translate-x-full lg:static lg:translate-x-0 lg:h-full'}
+          ${mobileOpen ? 'fixed top-0 left-0 h-[100dvh] translate-x-0' : 'fixed top-0 left-0 h-[100dvh] -translate-x-full lg:relative lg:translate-x-0 lg:h-full'}
         `}
       >
         {/* Header section */}

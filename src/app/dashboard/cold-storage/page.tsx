@@ -59,13 +59,19 @@ export default function ColdStoragePage() {
 
   useEffect(() => {
     fetch('/api/cold-storage')
-      .then(res => res.json())
-      .then(data => {
-        setBatches(data.batches || [])
-        setCapacity(data.capacity || { used: 0, total: 1000 })
-        setLoading(false)
+      .then(async res => {
+        if (res.redirected) { window.location.href = '/login'; return null; }
+        if (!res.ok) throw new Error('API Error')
+        return res.json()
       })
-      .catch(() => setLoading(false))
+      .then(data => {
+        if (data) {
+          setBatches(data.batches || [])
+          setCapacity(data.capacity || { used: 0, total: 1000 })
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
   }, [])
 
   const percentage = Math.round((capacity.used / capacity.total) * 100)

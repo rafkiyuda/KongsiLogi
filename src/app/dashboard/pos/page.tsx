@@ -37,11 +37,16 @@ export default function POSPage() {
 
   useEffect(() => {
     fetch('/api/inventory')
-      .then(res => res.json())
-      .then(data => {
-        setProducts(data)
-        setLoading(false)
+      .then(async res => {
+        if (res.redirected) { window.location.href = '/login'; return null; }
+        if (!res.ok) throw new Error('API Error')
+        return res.json()
       })
+      .then(data => {
+        if (data) setProducts(data)
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
   }, [])
 
   const addToCart = useCallback((product: Product) => {

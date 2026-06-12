@@ -37,10 +37,16 @@ export default function StockOpnamePage() {
   const [viewResult, setViewResult] = useState<Audit | null>(null)
 
   const fetchAudits = useCallback(async () => {
-    setLoading(true)
-    const res = await fetch('/api/stock-opname')
-    setAudits(await res.json())
-    setLoading(false)
+    try {
+      setLoading(true)
+      const res = await fetch('/api/stock-opname')
+      if (res.redirected) { window.location.href = '/login'; return; }
+      if (res.ok) setAudits(await res.json())
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => {

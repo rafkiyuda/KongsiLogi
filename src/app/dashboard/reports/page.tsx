@@ -23,14 +23,20 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(false)
 
   const fetchReport = useCallback(async () => {
-    setLoading(true)
-    const params = new URLSearchParams({ type: reportType })
-    if (dateFrom) params.set('from', dateFrom)
-    if (dateTo) params.set('to', dateTo)
+    try {
+      setLoading(true)
+      const params = new URLSearchParams({ type: reportType })
+      if (dateFrom) params.set('from', dateFrom)
+      if (dateTo) params.set('to', dateTo)
 
-    const res = await fetch(`/api/reports?${params}`)
-    setReport(await res.json())
-    setLoading(false)
+      const res = await fetch(`/api/reports?${params}`)
+      if (res.redirected) { window.location.href = '/login'; return; }
+      if (res.ok) setReport(await res.json())
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
   }, [reportType, dateFrom, dateTo])
 
   useEffect(() => {

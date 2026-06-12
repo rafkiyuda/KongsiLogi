@@ -26,15 +26,20 @@ export default function ProcurementPage() {
   const [showAiModal, setShowAiModal] = useState(false)
 
   const fetchData = useCallback(async () => {
-    setLoading(true)
-    const params = filter ? `?status=${filter}` : ''
-    const [prRes, prodRes] = await Promise.all([
-      fetch(`/api/procurement${params}`),
-      fetch('/api/inventory'),
-    ])
-    setRequests(await prRes.json())
-    setProducts(await prodRes.json())
-    setLoading(false)
+    try {
+      setLoading(true)
+      const params = filter ? `?status=${filter}` : ''
+      const [prRes, prodRes] = await Promise.all([
+        fetch(`/api/procurement${params}`),
+        fetch('/api/inventory'),
+      ])
+      if (prRes.ok) setRequests(await prRes.json())
+      if (prodRes.ok) setProducts(await prodRes.json())
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
   }, [filter])
 
   useEffect(() => {

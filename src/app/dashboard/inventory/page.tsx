@@ -54,15 +54,22 @@ export default function InventoryPage() {
   }
 
   const fetchProducts = useCallback(async () => {
-    setLoading(true)
-    const params = new URLSearchParams()
-    if (search) params.set('search', search)
-    if (category) params.set('category', category)
+    try {
+      setLoading(true)
+      const params = new URLSearchParams()
+      if (search) params.set('search', search)
+      if (category) params.set('category', category)
 
-    const res = await fetch(`/api/inventory?${params}`)
-    const data = await res.json()
-    setProducts(data)
-    setLoading(false)
+      const res = await fetch(`/api/inventory?${params}`)
+      if (res.redirected) { window.location.href = '/login'; return; }
+      if (!res.ok) throw new Error('API Error')
+      const data = await res.json()
+      setProducts(data)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
   }, [search, category])
 
   useEffect(() => {

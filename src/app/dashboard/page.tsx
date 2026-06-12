@@ -85,9 +85,9 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex items-center gap-3">
-          <button className="erp-button-secondary bg-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm border border-slate-200">
+          <a href="/api/reports/download" className="erp-button-secondary bg-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm border border-slate-200 inline-flex items-center">
             Unduh Laporan
-          </button>
+          </a>
         </div>
       </div>
 

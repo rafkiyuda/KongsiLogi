@@ -12,13 +12,9 @@ export default function LandingPage() {
       {/* ----------------- NAVBAR ----------------- */}
       <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl rounded-full border border-slate-200 bg-white/80 backdrop-blur-md z-50 px-6 h-16 flex items-center justify-between shadow-sm transition-all duration-300">
         <div className="flex items-center gap-3">
-          {/* Logo Placeholder - Pointing to the new assets folder */}
-          <div className="relative w-8 h-8 md:w-10 md:h-10 rounded bg-gradient-to-br from-[#0090d7] to-[#01b5bd] flex items-center justify-center text-white font-bold text-xl overflow-hidden shadow-inner">
-            KL
-            {/* 
-              When user uploads logo: 
-              <Image src="/assets/logo/logo.png" alt="KongsiLogi" fill className="object-cover" /> 
-            */}
+          {/* Logo */}
+          <div className="relative w-8 h-8 md:w-10 md:h-10 shrink-0">
+            <Image src="/assets/logo/KongsiLogi.png" alt="KongsiLogi" fill className="object-contain" />
           </div>
           <span className="font-bold text-xl md:text-2xl tracking-tight text-slate-800">
             KongsiLogi
@@ -133,9 +129,9 @@ export default function LandingPage() {
           
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { name: 'Pak Hendra', role: 'Manajer Pengadaan', text: 'Sistem forecast AI-nya sangat membantu! Kami tidak pernah lagi overstock barang yang lambat terjual.' },
-              { name: 'Ibu Ratna', role: 'Kepala Gudang', text: 'Stock opname dulu memakan waktu berhari-hari. Sekarang dengan fitur Audit KongsiLogi, semuanya selesai dalam hitungan jam.' },
-              { name: 'Budi Santoso', role: 'Kasir Koperasi', text: 'Sistem POS-nya terintegrasi langsung dengan inventory. Transaksi jadi sangat cepat dan sinkron.' },
+              { name: 'Pak Hendra', role: 'Manajer Pengadaan', image: '/assets/testimonials/hendra.png', text: 'Sistem forecast AI-nya sangat membantu! Kami tidak pernah lagi overstock barang yang lambat terjual.' },
+              { name: 'Ibu Ratna', role: 'Kepala Gudang', image: '/assets/testimonials/ratna.png', text: 'Stock opname dulu memakan waktu berhari-hari. Sekarang dengan fitur Audit KongsiLogi, semuanya selesai dalam hitungan jam.' },
+              { name: 'Budi Santoso', role: 'Kasir Koperasi', image: '/assets/testimonials/budi.png', text: 'Sistem POS-nya terintegrasi langsung dengan inventory. Transaksi jadi sangat cepat dan sinkron.' },
             ].map((testimonial, i) => (
               <div key={i} className="p-8 rounded-3xl border border-slate-200 bg-white hover:shadow-lg transition-all duration-300 flex flex-col h-full">
                 <div className="flex-1">
@@ -145,8 +141,8 @@ export default function LandingPage() {
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed">"{testimonial.text}"</p>
                 </div>
                 <div className="flex items-center gap-4 pt-6 border-t border-slate-100">
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#0090d7] to-[#01b5bd] flex items-center justify-center text-white font-bold text-lg shadow-inner">
-                    {testimonial.name[0]}
+                  <div className="relative h-12 w-12 rounded-full overflow-hidden border-2 border-slate-100 shadow-sm shrink-0">
+                    <Image src={testimonial.image} alt={testimonial.name} fill className="object-cover" />
                   </div>
                   <div>
                     <p className="font-bold text-slate-900">{testimonial.name}</p>

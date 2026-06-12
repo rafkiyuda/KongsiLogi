@@ -115,7 +115,7 @@ export interface Notification {
 
 export type Role = 'ADMIN' | 'WAREHOUSE_STAFF' | 'CASHIER' | 'VIEWER'
 
-export type InventoryStatus = 'SAFE' | 'ATTENTION' | 'CRITICAL' | 'EXPIRED'
+export type InventoryStatus = 'SAFE' | 'ATTENTION' | 'CRITICAL' | 'EXPIRED' | 'WAITING_PUTAWAY' | 'STORED' | 'SOLD' | 'DISPOSED'
 
 export type PurchaseRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'RECEIVED'
 

@@ -62,6 +62,7 @@ export default function SmartReceivingPage() {
   const [selectedSupplier, setSelectedSupplier] = useState('')
   const [receiving, setReceiving] = useState(false)
   const [receiveResult, setReceiveResult] = useState<string | null>(null)
+  const [adminOverride, setAdminOverride] = useState(false)
 
   // Putaway state
   const [selectedBatch, setSelectedBatch] = useState<PendingBatch | null>(null)
@@ -223,7 +224,7 @@ export default function SmartReceivingPage() {
       const res = await fetch('/api/smart-receiving', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'allocate_rack', batchId: selectedBatch.id, allocations: allocs }),
+        body: JSON.stringify({ action: 'allocate_rack', batchId: selectedBatch.id, allocations: allocs, overrideAdmin: adminOverride }),
       })
       const data = await res.json()
       if (data.success) {
@@ -569,10 +570,10 @@ export default function SmartReceivingPage() {
                             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{rec.zone} • Sisa kapasitas: {rec.available} crate</p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <input type="number" min="0" max={rec.available}
+                            <input type="number" min="0" max={adminOverride ? undefined : rec.available}
                               value={allocations[rec.rackId] || ''}
                               onChange={e => setAllocations(prev => ({ ...prev, [rec.rackId]: Number(e.target.value) }))}
-                              className="w-20 px-3 py-2 rounded-lg border text-center font-bold text-sm"
+                              className={`w-20 px-3 py-2 rounded-lg border text-center font-bold text-sm ${(!adminOverride && (allocations[rec.rackId] || 0) > rec.available) ? 'border-red-500 text-red-600 bg-red-50' : ''}`}
                               style={{ background: 'var(--bg-primary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }} />
                             <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>crate</span>
                           </div>
@@ -583,21 +584,25 @@ export default function SmartReceivingPage() {
                         </div>
                       </div>
                     ))}
+                    <div className="flex items-center gap-2 mt-4 px-2">
+                      <input type="checkbox" id="adminOverride" checked={adminOverride} onChange={e => setAdminOverride(e.target.checked)} className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                      <label htmlFor="adminOverride" className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Admin Override (Izinkan alokasi melebihi kapasitas)</label>
+                    </div>
                   </div>
                 )}
 
                 {/* Validation */}
-                <div className={`p-3 rounded-xl flex items-center justify-between ${totalAllocated === selectedBatch.quantity ? 'bg-green-50 border border-green-300' : 'bg-amber-50 border border-amber-300'}`}>
-                  <span className="text-sm font-medium" style={{ color: totalAllocated === selectedBatch.quantity ? '#16a34a' : '#d97706' }}>
-                    {totalAllocated === selectedBatch.quantity ? '✓ Alokasi valid' : `⚠ ${selectedBatch.quantity - totalAllocated} crate belum dialokasikan`}
+                <div className={`p-3 rounded-xl flex items-center justify-between ${totalAllocated === selectedBatch.quantity ? 'bg-green-50 border border-green-300' : totalAllocated > selectedBatch.quantity ? 'bg-red-50 border border-red-300' : 'bg-amber-50 border border-amber-300'}`}>
+                  <span className="text-sm font-medium" style={{ color: totalAllocated === selectedBatch.quantity ? '#16a34a' : totalAllocated > selectedBatch.quantity ? '#dc2626' : '#d97706' }}>
+                    {totalAllocated === selectedBatch.quantity ? '✓ Alokasi valid' : totalAllocated > selectedBatch.quantity ? '✗ Alokasi melebihi jumlah batch' : `⚠ ${selectedBatch.quantity - totalAllocated} crate belum dialokasikan`}
                   </span>
-                  <span className="font-bold" style={{ color: totalAllocated === selectedBatch.quantity ? '#16a34a' : '#d97706' }}>
+                  <span className="font-bold" style={{ color: totalAllocated === selectedBatch.quantity ? '#16a34a' : totalAllocated > selectedBatch.quantity ? '#dc2626' : '#d97706' }}>
                     {totalAllocated} / {selectedBatch.quantity}
                   </span>
                 </div>
 
                 <button onClick={handleConfirmPutaway}
-                  disabled={allocating || totalAllocated !== selectedBatch.quantity}
+                  disabled={allocating || totalAllocated > selectedBatch.quantity}
                   className="w-full py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50"
                   style={{ background: totalAllocated === selectedBatch.quantity ? 'linear-gradient(135deg, #3b82f6, #6366f1)' : '#94a3b8' }}>
                   {allocating ? <><Loader2 className="w-5 h-5 animate-spin" /> Mengalokasikan...</> : <><CheckCircle2 className="w-5 h-5" /> Confirm Putaway</>}
@@ -644,8 +649,8 @@ export default function SmartReceivingPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                 {racks.filter(r => r.zone === zone).map(rack => {
                   const pct = rack.occupancyPercent
-                  const color = pct > 85 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#22c55e'
-                  const bgColor = pct > 85 ? 'rgba(239,68,68,0.08)' : pct > 60 ? 'rgba(245,158,11,0.08)' : 'rgba(34,197,94,0.08)'
+                  const color = pct > 100 ? '#7f1d1d' : pct > 80 ? '#ef4444' : pct > 50 ? '#f59e0b' : '#22c55e'
+                  const bgColor = pct > 100 ? 'rgba(127,29,29,0.08)' : pct > 80 ? 'rgba(239,68,68,0.08)' : pct > 50 ? 'rgba(245,158,11,0.08)' : 'rgba(34,197,94,0.08)'
                   return (
                     <button key={rack.id} onClick={() => setSelectedRack(selectedRack?.id === rack.id ? null : rack)}
                       className={`p-4 rounded-2xl border-2 text-center transition-all hover:scale-105 cursor-pointer ${selectedRack?.id === rack.id ? 'ring-2 ring-blue-400 shadow-lg' : ''}`}

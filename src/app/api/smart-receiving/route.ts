@@ -24,6 +24,7 @@ export async function GET() {
       orderBy: { rackCode: 'asc' },
       include: {
         batchLocations: {
+          where: { status: 'STORED' },
           include: {
             batch: {
               select: { batchCode: true, product: { select: { name: true } } },
@@ -74,12 +75,9 @@ export async function GET() {
       orderBy: { name: 'asc' },
     })
 
-    // Batches waiting for putaway (have RFID tag assigned but no rack allocation yet)
+    // Batches waiting for putaway
     const pendingPutaway = await prisma.inventoryBatch.findMany({
-      where: {
-        rfidTags: { some: { status: 'ASSIGNED' } },
-        batchLocations: { none: {} },
-      },
+      where: { status: 'WAITING_PUTAWAY' },
       include: {
         product: { select: { name: true, category: true } },
         rfidTags: { select: { tagCode: true } },
@@ -216,7 +214,7 @@ export async function POST(request: Request) {
           receivedDate: now,
           expiryDate,
           storageLocation: 'Cold Storage A',
-          status: 'SAFE',
+          status: 'WAITING_PUTAWAY',
           notes: `Diterima via RFID (Total: ${quantity} tag)`,
         },
       })
@@ -241,43 +239,50 @@ export async function POST(request: Request) {
       return NextResponse.json({ batch, batchCode })
     }
 
-    // ── ALLOCATE RACK ────────────────────────────────────────────────────
+    // ── ALLOCATE RACK (PUTAWAY) ──────────────────────────────────────────
     if (action === 'allocate_rack') {
-      const { batchId, allocations } = body // allocations: [{ rackId, quantity }]
+      const { batchId, allocations, overrideAdmin } = body
 
+      // allocations: [{ rackId, quantity }]
+      
       const batch = await prisma.inventoryBatch.findUnique({ where: { id: batchId } })
       if (!batch) return NextResponse.json({ error: 'Batch tidak ditemukan' }, { status: 404 })
 
-      // Validate total
-      const totalAlloc = (allocations as { rackId: string; quantity: number }[]).reduce((sum: number, a: { quantity: number }) => sum + a.quantity, 0)
-      if (totalAlloc !== batch.quantity) {
-        return NextResponse.json({
-          error: `Total alokasi (${totalAlloc} crate) tidak sesuai dengan jumlah batch (${batch.quantity} crate)`,
-        }, { status: 400 })
+      const totalAlloc = allocations.reduce((sum: number, a: any) => sum + Number(a.quantity), 0)
+      if (totalAlloc > batch.quantity) {
+        return NextResponse.json({ error: 'Jumlah alokasi melebihi jumlah batch' }, { status: 400 })
       }
 
-      // Validate rack capacities
-      for (const alloc of allocations as { rackId: string; quantity: number }[]) {
-        const rack = await prisma.rack.findUnique({
-          where: { id: alloc.rackId },
-          include: { batchLocations: true },
-        })
-        if (!rack) return NextResponse.json({ error: `Rack tidak ditemukan` }, { status: 404 })
+      // Validate rack capacities unless admin override
+      if (!overrideAdmin) {
+        for (const alloc of allocations as { rackId: string; quantity: number }[]) {
+          const rack = await prisma.rack.findUnique({
+            where: { id: alloc.rackId },
+            include: { batchLocations: { where: { status: 'STORED' } } },
+          })
+          if (!rack) return NextResponse.json({ error: `Rack tidak ditemukan` }, { status: 404 })
 
-        const currentUsed = rack.batchLocations.reduce((sum, bl) => sum + bl.quantity, 0)
-        if (currentUsed + alloc.quantity > rack.capacityCrates) {
-          return NextResponse.json({
-            error: `${rack.rackCode} tidak cukup kapasitas (sisa ${rack.capacityCrates - currentUsed} crate)`,
-          }, { status: 400 })
+          const currentUsed = rack.batchLocations.reduce((sum, bl) => sum + bl.quantity, 0)
+          if (currentUsed + alloc.quantity > rack.capacityCrates) {
+            return NextResponse.json({
+              error: `${rack.rackCode} tidak cukup kapasitas (sisa ${rack.capacityCrates - currentUsed} crate)`,
+            }, { status: 400 })
+          }
         }
       }
 
       // Create batch locations
       for (const alloc of allocations as { rackId: string; quantity: number }[]) {
         await prisma.batchLocation.create({
-          data: { batchId, rackId: alloc.rackId, quantity: alloc.quantity },
+          data: { batchId, rackId: alloc.rackId, quantity: alloc.quantity, status: 'STORED' },
         })
       }
+
+      // Update batch status
+      await prisma.inventoryBatch.update({
+        where: { id: batchId },
+        data: { status: 'STORED' }
+      })
 
       // Log for each tag
       const tags = await prisma.rfidTag.findMany({ where: { currentBatchId: batchId } })

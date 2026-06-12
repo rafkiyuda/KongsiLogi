@@ -20,6 +20,10 @@ enum InventoryStatus {
   ATTENTION
   CRITICAL
   EXPIRED
+  WAITING_PUTAWAY
+  STORED
+  SOLD
+  DISPOSED
 }
 
 enum PurchaseRequestStatus {
@@ -308,6 +312,7 @@ model BatchLocation {
   rackId   String   @map("rack_id")
   quantity Int
   placedAt DateTime @default(now()) @map("placed_at")
+  status   String   @default("STORED")
 
   batch InventoryBatch @relation(fields: [batchId], references: [id])
   rack  Rack           @relation(fields: [rackId], references: [id])

@@ -18,7 +18,7 @@ export async function GET(request: Request) {
         inventoryBatches: {
           where: {
             remainingQuantity: { gt: 0 },
-            ...(status && { status: status as 'SAFE' | 'ATTENTION' | 'CRITICAL' | 'EXPIRED' }),
+            ...(status && { status: status as any }),
           },
           include: { supplier: { select: { name: true } } },
           orderBy: { receivedDate: 'asc' }, // FIFO

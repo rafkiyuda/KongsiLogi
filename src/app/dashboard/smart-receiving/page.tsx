@@ -182,6 +182,13 @@ export default function SmartReceivingPage() {
         setSelectedProduct('')
         setInferredProduct(null)
         setSelectedSupplier('')
+        
+        // Auto-open Putaway modal with recommendations immediately
+        if (data.batch) {
+          setActiveTab('putaway')
+          handleSelectBatch(data.batch)
+        }
+        
         fetchData()
       } else {
         alert(data.error || 'Gagal menerima batch')

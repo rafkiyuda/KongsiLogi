@@ -236,7 +236,16 @@ export async function POST(request: Request) {
       }))
       await prisma.receivingLog.createMany({ data: logsToCreate })
 
-      return NextResponse.json({ batch, batchCode })
+      // Refetch with includes for the frontend
+      const batchWithIncludes = await prisma.inventoryBatch.findUnique({
+        where: { id: batch.id },
+        include: {
+          product: { select: { name: true, category: true } },
+          rfidTags: { select: { tagCode: true } },
+        }
+      })
+
+      return NextResponse.json({ batch: batchWithIncludes, batchCode })
     }
 
     // ── ALLOCATE RACK (PUTAWAY) ──────────────────────────────────────────

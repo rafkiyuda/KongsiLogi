@@ -4,14 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
-  ArrowLeft,
+  ArrowRight,
   Check,
-  Building2,
-  MonitorSmartphone,
-  Warehouse,
-  Brain,
-  Snowflake,
-  ShoppingCart,
   X,
   MessageCircle
 } from 'lucide-react'
@@ -22,7 +16,7 @@ const PRODUCTS = [
     id: 'core',
     name: 'KongsiLogi Core (ERP)',
     price: 250000,
-    icon: Building2,
+    hue: 0, // Original Blue
     color: 'text-[#0090d7]',
     bgColor: 'bg-[#0090d7]/10'
   },
@@ -30,7 +24,7 @@ const PRODUCTS = [
     id: 'pos',
     name: 'KongsiLogi POS',
     price: 150000,
-    icon: MonitorSmartphone,
+    hue: 60, // Shifts to Purple/Indigo
     color: 'text-indigo-500',
     bgColor: 'bg-indigo-500/10'
   },
@@ -38,7 +32,7 @@ const PRODUCTS = [
     id: 'wms',
     name: 'KongsiLogi WMS',
     price: 350000,
-    icon: Warehouse,
+    hue: -30, // Shifts to Teal/Green
     color: 'text-[#01b5bd]',
     bgColor: 'bg-[#01b5bd]/10'
   },
@@ -46,7 +40,7 @@ const PRODUCTS = [
     id: 'ai',
     name: 'KongsiLogi Demand AI',
     price: 450000,
-    icon: Brain,
+    hue: 200, // Shifts to Orange/Amber
     color: 'text-amber-500',
     bgColor: 'bg-amber-500/10'
   },
@@ -54,7 +48,7 @@ const PRODUCTS = [
     id: 'cold',
     name: 'KongsiLogi Cold Storage',
     price: 200000,
-    icon: Snowflake,
+    hue: -90, // Shifts to Cyan/Light Blue
     color: 'text-cyan-500',
     bgColor: 'bg-cyan-500/10'
   },
@@ -62,7 +56,7 @@ const PRODUCTS = [
     id: 'procure',
     name: 'KongsiLogi Procurement',
     price: 250000,
-    icon: ShoppingCart,
+    hue: -60, // Shifts to Green
     color: 'text-emerald-500',
     bgColor: 'bg-emerald-500/10'
   }
@@ -99,20 +93,32 @@ export default function HargaPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-24">
-      {/* Navbar Minimalis */}
-      <nav className="bg-white border-b border-slate-200 px-6 h-16 flex items-center justify-between sticky top-0 z-50">
+      {/* NAVBAR */}
+      <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl rounded-full border border-slate-200 bg-white/80 backdrop-blur-md z-50 px-6 h-16 flex items-center justify-between shadow-sm transition-all duration-300">
         <div className="flex items-center gap-3">
-          <Link href="/" className="mr-4 text-slate-500 hover:text-slate-800 transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div className="relative w-8 h-8 md:w-10 md:h-10 shrink-0">
+          <Link href="/" className="relative w-8 h-8 md:w-10 md:h-10 shrink-0 cursor-pointer">
             <Image src="/assets/logo/KongsiLogi.png" alt="KongsiLogi" fill className="object-contain" />
-          </div>
-          <span className="font-bold text-xl tracking-tight text-slate-800 hidden sm:block">
+          </Link>
+          <Link href="/" className="font-bold text-xl md:text-2xl tracking-tight text-slate-800 cursor-pointer">
             KongsiLogi
-          </span>
+          </Link>
         </div>
-      </nav>
+        
+        <nav className="hidden md:flex gap-8 text-sm font-medium">
+          <Link className="text-slate-600 hover:text-[#0090d7] transition-colors" href="/#features">Fitur</Link>
+          <Link className="text-slate-600 hover:text-[#0090d7] transition-colors" href="/#testimonials">Testimoni</Link>
+          <Link className="text-slate-600 hover:text-[#0090d7] transition-colors" href="/harga">Harga</Link>
+        </nav>
+        
+        <div className="flex gap-4 items-center">
+          <Link href="/login" className="hidden md:inline-flex items-center justify-center whitespace-nowrap rounded-full text-sm font-semibold transition-colors hover:bg-slate-100 text-slate-700 h-10 px-5 py-2">
+            Log In
+          </Link>
+          <Link href="/login" className="inline-flex items-center justify-center whitespace-nowrap rounded-full text-sm font-semibold transition-all shadow-md hover:shadow-lg bg-gradient-to-r from-[#0090d7] to-[#01b5bd] text-white hover:opacity-90 h-10 px-5 py-2">
+            Masuk Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </div>
+      </header>
 
       <main className="max-w-7xl mx-auto px-6 pt-16">
         <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2 text-center md:text-left">
@@ -131,7 +137,6 @@ export default function HargaPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {PRODUCTS.map(product => {
                 const isSelected = selectedIds.includes(product.id)
-                const Icon = product.icon
                 
                 return (
                   <label 
@@ -157,7 +162,9 @@ export default function HargaPage() {
                     </div>
 
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${product.bgColor}`}>
-                      <Icon className={`w-6 h-6 ${product.color}`} />
+                      <div className="relative w-7 h-7" style={{ filter: `hue-rotate(${product.hue}deg)` }}>
+                        <Image src="/assets/logo/product_icon.png" alt={product.name} fill className="object-contain" />
+                      </div>
                     </div>
                     <span className="font-semibold text-slate-800 text-sm">{product.name}</span>
                   </label>
@@ -178,11 +185,12 @@ export default function HargaPage() {
               ) : (
                 <div className="space-y-4 mb-8 max-h-[40vh] overflow-y-auto pr-2">
                   {selectedProducts.map(product => {
-                    const Icon = product.icon
                     return (
                       <div key={product.id} className="flex items-center justify-between py-3 border-b border-slate-100 group">
                         <div className="flex items-center gap-3">
-                          <Icon className={`w-5 h-5 ${product.color}`} />
+                          <div className="relative w-5 h-5" style={{ filter: `hue-rotate(${product.hue}deg)` }}>
+                            <Image src="/assets/logo/product_icon.png" alt={product.name} fill className="object-contain" />
+                          </div>
                           <span className="font-semibold text-slate-800 text-sm">{product.name}</span>
                         </div>
                         <div className="flex items-center gap-3">

@@ -142,10 +142,12 @@ model InventoryBatch {
   storageLocation   String          @default("Cold Storage A") @map("storage_location")
   status            InventoryStatus @default(SAFE)
   notes             String?
+  qcSessionId       String?         @unique @map("qc_session_id")
   createdAt         DateTime        @default(now()) @map("created_at")
 
   product               Product                @relation(fields: [productId], references: [id])
   supplier              Supplier?              @relation(fields: [supplierId], references: [id])
+  qcSession             QcSession?             @relation(fields: [qcSessionId], references: [id])
   salesTransactionItems SalesTransactionItem[]
   stockAuditItems       StockAuditItem[]
   rfidTags              RfidTag[]
@@ -335,4 +337,27 @@ model ReceivingLog {
   rfidTag RfidTag @relation(fields: [rfidTagId], references: [id])
 
   @@map("receiving_logs")
+}
+
+model QcSession {
+  id               String   @id @default(cuid())
+  qcSessionId      String   @unique @map("qc_session_id")
+  skuId            String   @map("sku_id")
+  skuName          String   @map("sku_name")
+  supplierId       String?  @map("supplier_id")
+  supplierName     String?  @map("supplier_name")
+  freshnessScore   Int      @map("freshness_score")
+  freshnessStatus  String   @map("freshness_status")
+  confidenceScore  Int      @map("confidence_score")
+  aiRecommendation String?  @db.Text @map("ai_recommendation")
+  staffDecision    String   @map("staff_decision")
+  status           String   @default("APPROVED_FOR_RECEIVING")
+  imageEvidenceUrl String?  @map("image_evidence_url")
+  notes            String?  @db.Text
+  checkedAt        DateTime @default(now()) @map("checked_at")
+  checkedBy        String   @map("checked_by")
+
+  inventoryBatch   InventoryBatch?
+
+  @@map("qc_sessions")
 }

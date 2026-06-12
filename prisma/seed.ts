@@ -303,16 +303,16 @@ async function main() {
 
   // ===== RFID TAGS =====
   const rfidTags = await Promise.all([
-    prisma.rfidTag.create({ data: { tagCode: 'TAG-0001', status: 'ASSIGNED', currentBatchId: batches[0].id, lastScannedAt: daysAgo(4) } }),
-    prisma.rfidTag.create({ data: { tagCode: 'TAG-0002', status: 'ASSIGNED', currentBatchId: batches[1].id, lastScannedAt: daysAgo(1) } }),
-    prisma.rfidTag.create({ data: { tagCode: 'TAG-0003', status: 'ASSIGNED', currentBatchId: batches[3].id, lastScannedAt: daysAgo(2) } }),
-    prisma.rfidTag.create({ data: { tagCode: 'TAG-0004', status: 'AVAILABLE', lastScannedAt: daysAgo(5) } }),
-    prisma.rfidTag.create({ data: { tagCode: 'TAG-0005', status: 'AVAILABLE' } }),
-    prisma.rfidTag.create({ data: { tagCode: 'TAG-0006', status: 'AVAILABLE' } }),
-    prisma.rfidTag.create({ data: { tagCode: 'TAG-0007', status: 'ASSIGNED', currentBatchId: batches[5].id, lastScannedAt: daysAgo(5) } }),
-    prisma.rfidTag.create({ data: { tagCode: 'TAG-0008', status: 'AVAILABLE' } }),
-    prisma.rfidTag.create({ data: { tagCode: 'TAG-0009', status: 'DECOMMISSIONED' } }),
-    prisma.rfidTag.create({ data: { tagCode: 'TAG-0010', status: 'AVAILABLE' } }),
+    prisma.rfidTag.create({ data: { tagCode: 'BAY-TAG-0001', status: 'ASSIGNED', currentBatchId: batches[0].id, lastScannedAt: daysAgo(4) } }),
+    prisma.rfidTag.create({ data: { tagCode: 'BAY-TAG-0002', status: 'ASSIGNED', currentBatchId: batches[1].id, lastScannedAt: daysAgo(1) } }),
+    prisma.rfidTag.create({ data: { tagCode: 'SAW-TAG-0001', status: 'ASSIGNED', currentBatchId: batches[3].id, lastScannedAt: daysAgo(2) } }),
+    prisma.rfidTag.create({ data: { tagCode: 'WOR-TAG-0001', status: 'AVAILABLE', lastScannedAt: daysAgo(5) } }),
+    prisma.rfidTag.create({ data: { tagCode: 'BAY-TAG-0003', status: 'AVAILABLE' } }),
+    prisma.rfidTag.create({ data: { tagCode: 'TOM-TAG-0001', status: 'AVAILABLE' } }),
+    prisma.rfidTag.create({ data: { tagCode: 'CBM-TAG-0001', status: 'ASSIGNED', currentBatchId: batches[5].id, lastScannedAt: daysAgo(5) } }),
+    prisma.rfidTag.create({ data: { tagCode: 'KAN-TAG-0001', status: 'AVAILABLE' } }),
+    prisma.rfidTag.create({ data: { tagCode: 'BRO-TAG-0001', status: 'DECOMMISSIONED' } }),
+    prisma.rfidTag.create({ data: { tagCode: 'KOL-TAG-0001', status: 'AVAILABLE' } }),
   ])
 
   console.log('✅ RFID Tags created')

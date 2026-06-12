@@ -58,6 +58,7 @@ export default function SmartReceivingPage() {
   const [scanning, setScanning] = useState(false)
   const [selectedTag, setSelectedTag] = useState('')
   const [selectedProduct, setSelectedProduct] = useState('')
+  const [inferredProduct, setInferredProduct] = useState<{id: string, name: string} | null>(null)
   const [selectedSupplier, setSelectedSupplier] = useState('')
   const [receiveQty, setReceiveQty] = useState('')
   const [receiving, setReceiving] = useState(false)
@@ -116,6 +117,13 @@ export default function SmartReceivingPage() {
       if (data.tag) {
         setScanResult(data.tag)
         setSelectedTag(data.tag.tagCode)
+        if (data.inferredProduct) {
+          setInferredProduct(data.inferredProduct)
+          setSelectedProduct(data.inferredProduct.id)
+        } else {
+          setInferredProduct(null)
+          setSelectedProduct('')
+        }
       }
     } catch (e) { console.error(e) }
     finally { setScanning(false) }
@@ -143,6 +151,7 @@ export default function SmartReceivingPage() {
         setScanResult(null)
         setSelectedTag('')
         setSelectedProduct('')
+        setInferredProduct(null)
         setSelectedSupplier('')
         setReceiveQty('')
         fetchData()
@@ -389,12 +398,20 @@ export default function SmartReceivingPage() {
 
                 <div>
                   <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Pilih SKU / Produk *</label>
-                  <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border text-sm"
-                    style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}>
-                    <option value="">-- Pilih Produk --</option>
-                    {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.category})</option>)}
-                  </select>
+                  {inferredProduct ? (
+                    <div className="w-full px-4 py-2.5 rounded-xl border text-sm flex items-center justify-between"
+                      style={{ background: 'rgba(59,130,246,0.1)', borderColor: '#3b82f6', color: 'var(--text-primary)' }}>
+                      <span className="font-bold">{inferredProduct.name}</span>
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">Auto-detected dari Tag</span>
+                    </div>
+                  ) : (
+                    <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border text-sm"
+                      style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-primary)', color: 'var(--text-primary)' }}>
+                      <option value="">-- Pilih Produk --</option>
+                      {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.category})</option>)}
+                    </select>
+                  )}
                 </div>
 
                 <div>

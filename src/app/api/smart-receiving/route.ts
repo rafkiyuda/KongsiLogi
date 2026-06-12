@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/smart-receiving — fetch all RFID data for the dashboard
 // ─────────────────────────────────────────────────────────────────────────────
@@ -123,13 +125,23 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: `Tag ${tagCode} tidak ditemukan` }, { status: 404 })
       }
 
-      // Update last scanned
-      await prisma.rfidTag.update({
-        where: { id: tag.id },
-        data: { lastScannedAt: new Date() },
-      })
+      // Infer product from tag prefix (e.g., BAY-TAG-0001 -> BAY -> Bayam)
+      const skuPrefix = tagCode.split('-')[0]
+      const skuMapReverse: Record<string, string> = {
+        'BAY': 'Bayam', 'KAN': 'Kangkung', 'SAW': 'Sawi Putih', 'SEL': 'Selada',
+        'CBM': 'Cabai Merah', 'CBR': 'Cabai Rawit', 'TOM': 'Tomat', 'WOR': 'Wortel',
+        'BRO': 'Brokoli', 'BNC': 'Buncis', 'KOL': 'Kol', 'DBW': 'Daun Bawang',
+      }
+      const inferredProductName = skuMapReverse[skuPrefix]
+      let inferredProduct = null
+      if (inferredProductName) {
+        inferredProduct = await prisma.product.findFirst({
+          where: { name: inferredProductName },
+          select: { id: true, name: true, category: true }
+        })
+      }
 
-      return NextResponse.json({ tag })
+      return NextResponse.json({ tag, inferredProduct })
     }
 
     // ── RECEIVE BATCH ────────────────────────────────────────────────────

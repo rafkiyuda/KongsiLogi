@@ -26,6 +26,18 @@ interface CartItem {
   maxStock: number
 }
 
+const getProductImage = (category: string) => {
+  const images: Record<string, string> = {
+    'Sayur & Buah': 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=200&q=80',
+    'Daging & Seafood': 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?auto=format&fit=crop&w=200&q=80',
+    'Minuman': 'https://images.unsplash.com/photo-1556881286-fc6915169721?auto=format&fit=crop&w=200&q=80',
+    'Snack & Makanan Ringan': 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?auto=format&fit=crop&w=200&q=80',
+    'Susu & Olahan': 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=200&q=80',
+    'Frozen Food': 'https://images.unsplash.com/photo-1588169115783-05ec2c6a0c20?auto=format&fit=crop&w=200&q=80',
+  }
+  return images[category] || 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=200&q=80'
+}
+
 export default function POSPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
@@ -168,9 +180,16 @@ export default function POSPage() {
                 disabled={isOutOfStock}
                 className={`glass-card p-3 text-left transition-all ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02] active:scale-[0.98]'} ${inCart ? 'ring-2 ring-sky-500/50' : ''}`}
               >
-                <div className="w-full aspect-square rounded-xl flex items-center justify-center mb-2"
-                  style={{ background: 'var(--bg-tertiary)' }}>
-                  <Package className="w-8 h-8" style={{ color: statusColor }} />
+                <div className="w-full aspect-square rounded-xl overflow-hidden mb-2 relative group-hover:shadow-md transition-shadow">
+                  {/* Fallback border if image fails to load quickly, but we use the img directly */}
+                  <img 
+                    src={getProductImage(product.category)} 
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                  {/* Status overlay line */}
+                  <div className="absolute bottom-0 left-0 w-full h-1" style={{ backgroundColor: statusColor }}></div>
                 </div>
                 <h3 className="font-medium text-sm truncate" style={{ color: 'var(--text-primary)' }}>{product.name}</h3>
                 <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>

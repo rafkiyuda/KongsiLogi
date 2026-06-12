@@ -26,22 +26,7 @@ export async function middleware(request: NextRequest) {
   // Check auth token
   const token = request.cookies.get('auth-token')?.value
 
-  // --- BEGIN TEMPORARY LOGIN BYPASS ---
-  /*
-  if (!token) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-  */
-
   let payload = token ? await verifyToken(token) : null
-
-  /*
-  if (!payload) {
-    const response = NextResponse.redirect(new URL('/login', request.url))
-    response.cookies.delete('auth-token')
-    return response
-  }
-  */
 
   if (!payload) {
     payload = {

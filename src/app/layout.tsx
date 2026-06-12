@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { FloatingWhatsApp } from "@/components/layout/FloatingWhatsApp";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -32,6 +33,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         {children}
+        <FloatingWhatsApp />
       </body>
     </html>
   );

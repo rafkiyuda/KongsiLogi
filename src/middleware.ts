@@ -7,6 +7,11 @@ const publicPaths = ['/login', '/api/auth/login', '/api/auth/register']
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Allow root landing page exactly
+  if (pathname === '/') {
+    return NextResponse.next()
+  }
+
   // Allow public paths
   if (publicPaths.some(path => pathname.startsWith(path))) {
     return NextResponse.next()

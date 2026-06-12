@@ -38,9 +38,9 @@
   --border-focus: #3b82f6;   /* Focus ring (Blue 500) */
 
   /* Brand */
-  --brand-primary: #3b82f6;  /* Primary action colour (Blue 500) */
-  --brand-hover: #2563eb;    /* Hover state (Blue 600) */
-  --accent-primary: #3b82f6; /* Alias for --brand-primary */
+  --brand-primary: #0090d7;  /* Primary action colour (KongsiLogi Blue) */
+  --brand-hover: #007bb8;    /* Hover state */
+  --accent-primary: #01b5bd; /* Secondary action colour (KongsiLogi Teal) */
 
   /* Status */
   --status-success: #10b981; /* Emerald 500 */

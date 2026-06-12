@@ -24,7 +24,7 @@ export default function LandingPage() {
         <nav className="hidden md:flex gap-8 text-sm font-medium">
           <a className="text-slate-600 hover:text-[#0090d7] transition-colors" href="#features">Fitur</a>
           <a className="text-slate-600 hover:text-[#0090d7] transition-colors" href="#testimonials">Testimoni</a>
-          <a className="text-slate-600 hover:text-[#0090d7] transition-colors" href="#pricing">Harga</a>
+          <Link className="text-slate-600 hover:text-[#0090d7] transition-colors" href="/harga">Harga</Link>
         </nav>
         
         <div className="flex gap-4 items-center">
@@ -155,24 +155,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ----------------- PRICING CTA ----------------- */}
-      <section id="pricing" className="py-24 bg-[#0090d7] px-6 relative overflow-hidden">
-        {/* Abstract Background Element */}
-        <div className="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-white/10 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -ml-32 -mb-32 w-96 h-96 rounded-full bg-[#01b5bd]/40 blur-3xl"></div>
-        
-        <div className="container mx-auto max-w-4xl text-center relative z-10">
-          <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-6 leading-tight">
-            Penawaran Bundle Kustom <br/>Sesuai Kebutuhan Anda
-          </h2>
-          <p className="text-blue-100 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            Pilih dan rakit sendiri modul KongsiLogi yang paling sesuai dengan skala operasi koperasi Anda. Bayar hanya untuk fitur yang Anda gunakan.
-          </p>
-          <Link href="/harga" className="inline-flex items-center gap-2 bg-white text-[#0090d7] font-extrabold text-lg px-8 py-4 rounded-full shadow-xl hover:bg-slate-50 hover:scale-105 transition-all">
-            Lihat Pilihan Harga & Bundle <ArrowRight className="w-5 h-5" />
-          </Link>
-        </div>
-      </section>
+
 
       {/* ----------------- FOOTER ----------------- */}
       <footer className="py-12 border-t border-slate-200 bg-slate-50 text-center text-sm font-medium text-slate-400">

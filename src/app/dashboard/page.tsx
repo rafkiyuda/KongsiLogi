@@ -187,7 +187,9 @@ export default function DashboardPage() {
             </h3>
             <button className="text-sm font-semibold text-blue-600 hover:text-blue-800">Lihat Detail</button>
           </div>
-          <SalesChart data={data.salesChart} />
+          <div className="w-full h-[250px] min-w-0">
+            <SalesChart data={data.salesChart} />
+          </div>
         </div>
 
         {/* System Alerts (1/3 width) */}

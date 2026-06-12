@@ -19,7 +19,7 @@ export default async function DashboardLayout({
       <Sidebar user={{ name: session.name, email: session.email, role: session.role }} />
 
       {/* Main content wrapper */}
-      <main className="flex-1 flex flex-col h-full min-w-0 overflow-y-auto">
+      <main className="flex-1 flex flex-col h-full min-w-0 overflow-y-auto overflow-x-hidden">
         
         {/* Top Header Bar */}
         <header className="hidden lg:flex h-[72px] bg-white border-b border-slate-100 px-8 items-center justify-between shrink-0 sticky top-0 z-10 shadow-sm">

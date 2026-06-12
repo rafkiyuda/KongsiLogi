@@ -29,17 +29,17 @@ interface CartItem {
 const getProductImage = (name: string, category: string) => {
   const specificImages: Record<string, string> = {
     'Bayam': 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=400&q=80',
-    'Kangkung': 'https://images.unsplash.com/photo-1595855768565-df4eb266ee14?auto=format&fit=crop&w=400&q=80',
-    'Sawi Putih': 'https://images.unsplash.com/photo-1557053912-9118e954b42b?auto=format&fit=crop&w=400&q=80',
+    'Kangkung': '/assets/images/products/kangkung.png',
+    'Sawi Putih': '/assets/images/products/sawi_putih.png',
     'Selada': 'https://images.unsplash.com/photo-1622206151226-18ca2c9ab4a1?auto=format&fit=crop&w=400&q=80',
-    'Cabai Merah': 'https://images.unsplash.com/photo-1588040798782-019e072120e2?auto=format&fit=crop&w=400&q=80',
-    'Cabai Rawit': 'https://images.unsplash.com/photo-1589140228303-a26a57d07dc0?auto=format&fit=crop&w=400&q=80',
+    'Cabai Merah': 'https://images.unsplash.com/photo-1570586437263-ab629fccc818?auto=format&fit=crop&w=400&q=80',
+    'Cabai Rawit': 'https://images.unsplash.com/photo-1570586437263-ab629fccc818?auto=format&fit=crop&w=400&q=80',
     'Tomat': 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80',
     'Wortel': 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=400&q=80',
     'Brokoli': 'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?auto=format&fit=crop&w=400&q=80',
-    'Buncis': 'https://images.unsplash.com/photo-1533615433068-07e15ff07dd6?auto=format&fit=crop&w=400&q=80',
+    'Buncis': '/assets/images/products/buncis.png',
     'Kol': 'https://images.unsplash.com/photo-1598030304671-5aa1d6f21128?auto=format&fit=crop&w=400&q=80',
-    'Daun Bawang': 'https://images.unsplash.com/photo-1603048297172-c92544798d5e?auto=format&fit=crop&w=400&q=80',
+    'Daun Bawang': '/assets/images/products/daun_bawang.png',
   }
 
   if (specificImages[name]) return specificImages[name]

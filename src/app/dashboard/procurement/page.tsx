@@ -33,6 +33,7 @@ export default function ProcurementPage() {
         fetch(`/api/procurement${params}`),
         fetch('/api/inventory'),
       ])
+      if (prRes.redirected || prodRes.redirected) { window.location.href = '/login'; return; }
       if (prRes.ok) setRequests(await prRes.json())
       if (prodRes.ok) setProducts(await prodRes.json())
     } catch (e) {

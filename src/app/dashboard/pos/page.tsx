@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import {
   ShoppingCart, Plus, Minus, Trash2, CreditCard, Loader2,
-  Package, Search, FileText, ArrowLeft, Receipt, Check, Banknote
+  Package, Search, FileText, ArrowLeft, Receipt, Check, Banknote, WifiOff
 } from 'lucide-react'
 
 // Declare Midtrans Snap global
@@ -14,6 +14,15 @@ declare global {
 }
 
 import { formatCurrency } from '@/lib/utils'
+import { get, set } from 'idb-keyval'
+
+interface OfflineOrder {
+  id: string
+  items: any[]
+  paymentMethod: string
+  totalAmount: number
+  createdAt: number
+}
 
 interface Product {
   id: string
@@ -23,6 +32,7 @@ interface Product {
   sellingPrice: number
   totalRemaining: number
   stockStatus: string
+  rfidTags?: string[]
 }
 
 interface CartItem {
@@ -71,20 +81,144 @@ export default function POSPage() {
   const [processing, setProcessing] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('CASH')
   const [showReceipt, setShowReceipt] = useState<{code: string; total: number; items: CartItem[]} | null>(null)
+  const [isOffline, setIsOffline] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [offlineQueueCount, setOfflineQueueCount] = useState(0)
+
+  const checkQueue = async () => {
+    try {
+      const queue = await get<OfflineOrder[]>('offline_orders') || []
+      setOfflineQueueCount(queue.length)
+    } catch { }
+  }
+
+  const syncQueue = async () => {
+    if (!navigator.onLine || syncing) return
+    try {
+      const queue = await get<OfflineOrder[]>('offline_orders') || []
+      if (queue.length === 0) return
+
+      setSyncing(true)
+      const newQueue = [...queue]
+      for (const order of queue) {
+        try {
+          const res = await fetch('/api/pos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              items: order.items,
+              paymentMethod: order.paymentMethod,
+            }),
+          })
+          if (res.ok) {
+            const index = newQueue.findIndex(o => o.id === order.id)
+            if (index !== -1) newQueue.splice(index, 1)
+          }
+        } catch (err) {
+          console.error('Failed to sync order', order.id, err)
+        }
+      }
+      await set('offline_orders', newQueue)
+      setOfflineQueueCount(newQueue.length)
+    } catch { } finally {
+      setSyncing(false)
+    }
+  }
 
   useEffect(() => {
-    fetch('/api/inventory')
-      .then(async res => {
-        if (res.redirected) { window.location.href = '/login'; return null; }
-        if (!res.ok) throw new Error('API Error')
-        return res.json()
-      })
-      .then(data => {
-        if (data) setProducts(data)
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false))
+    checkQueue()
   }, [])
+
+  useEffect(() => {
+    // Set initial online status
+    setIsOffline(!navigator.onLine)
+    
+    // Listen for connection changes
+    const handleOnline = () => {
+      setIsOffline(false)
+      syncQueue()
+    }
+    const handleOffline = () => {
+      setIsOffline(true)
+      setPaymentMethod('CASH') // Force cash if offline
+    }
+    
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        if (navigator.onLine) {
+          const res = await fetch('/api/inventory')
+          if (res.redirected) { window.location.href = '/login'; return }
+          if (!res.ok) throw new Error('API Error')
+          const data = await res.json()
+          setProducts(data)
+          await set('pos_products', data)
+        } else {
+          const cached = await get<Product[]>('pos_products')
+          if (cached) setProducts(cached)
+        }
+      } catch (err) {
+        const cached = await get<Product[]>('pos_products')
+        if (cached) setProducts(cached)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadProducts()
+  }, [])
+
+  // Global Keydown Listener for USB RFID Scanner
+  const barcodeBuffer = useRef('')
+  const lastKeyTime = useRef(0)
+  const addToCartRef = useRef<any>(null)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const currentTime = Date.now()
+      
+      // If time since last key is > 50ms, assume human typing and reset buffer
+      if (currentTime - lastKeyTime.current > 50) {
+        barcodeBuffer.current = ''
+      }
+      lastKeyTime.current = currentTime
+
+      if (e.key === 'Enter') {
+        if (barcodeBuffer.current.length > 5) {
+          const scannedCode = barcodeBuffer.current
+          // Find matching product by RFID tag
+          const foundProduct = products.find(p => p.rfidTags?.includes(scannedCode))
+          
+          if (foundProduct && addToCartRef.current) {
+            addToCartRef.current(foundProduct)
+            
+            // Clean up search input if the scanner typed into it
+            if (e.target instanceof HTMLInputElement && e.target.type === 'text') {
+              e.target.value = e.target.value.replace(scannedCode, '')
+              setSearch(e.target.value) // Update search state
+            }
+          } else {
+             // Optional: Show alert if product not found
+             console.warn('RFID tag not recognized:', scannedCode)
+          }
+        }
+        barcodeBuffer.current = '' // Reset after enter
+      } else if (e.key.length === 1) {
+        barcodeBuffer.current += e.key
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [products])
 
   const addToCart = useCallback((product: Product) => {
     if (product.totalRemaining <= 0) return
@@ -107,6 +241,10 @@ export default function POSPage() {
       }]
     })
   }, [])
+
+  useEffect(() => {
+    addToCartRef.current = addToCart
+  }, [addToCart])
 
   const updateQuantity = (productId: string, delta: number) => {
     setCart(prev => prev.map(item => {
@@ -200,18 +338,37 @@ export default function POSPage() {
   const finalizeOrder = async () => {
     try {
       setProcessing(true)
+      const orderPayload = {
+        items: cart.map(i => ({
+          productId: i.productId,
+          productName: i.productName,
+          quantity: i.quantity,
+          price: i.price,
+        })),
+        paymentMethod,
+      }
+
+      if (!navigator.onLine) {
+        // Save to offline queue
+        const queue = await get<OfflineOrder[]>('offline_orders') || []
+        const offlineOrder: OfflineOrder = {
+          id: `OFFLINE-${Date.now()}`,
+          ...orderPayload,
+          totalAmount: total,
+          createdAt: Date.now()
+        }
+        await set('offline_orders', [...queue, offlineOrder])
+        
+        setShowReceipt({ code: offlineOrder.id, total, items: [...cart] })
+        setCart([])
+        checkQueue()
+        return
+      }
+
       const res = await fetch('/api/pos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: cart.map(i => ({
-            productId: i.productId,
-            productName: i.productName,
-            quantity: i.quantity,
-            price: i.price,
-          })),
-          paymentMethod,
-        }),
+        body: JSON.stringify(orderPayload),
       })
 
       if (!res.ok) {
@@ -252,7 +409,21 @@ export default function POSPage() {
       {/* Product grid */}
       <div className="flex-1 flex flex-col min-h-0">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Kasir (POS)</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Kasir (POS)</h1>
+            {isOffline && (
+              <span className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full dark:bg-red-900/30 dark:text-red-400">
+                <WifiOff className="w-3.5 h-3.5" />
+                Offline
+              </span>
+            )}
+            {offlineQueueCount > 0 && (
+              <span className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-amber-100 text-amber-700 rounded-full dark:bg-amber-900/30 dark:text-amber-400">
+                <Package className="w-3.5 h-3.5" />
+                {offlineQueueCount} Antrean {syncing ? '(Menyinkron...)' : ''}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="relative mb-4">
@@ -371,21 +542,26 @@ export default function POSPage() {
                   { value: 'CASH', label: 'Tunai', icon: Banknote },
                   { value: 'TRANSFER', label: 'Transfer', icon: CreditCard },
                   { value: 'QRIS', label: 'QRIS', icon: CreditCard },
-                ].map(m => (
-                  <button
-                    key={m.value}
-                    onClick={() => setPaymentMethod(m.value)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all ${
-                      paymentMethod === m.value
-                        ? 'bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/30'
-                        : 'hover:bg-white/5'
-                    }`}
-                    style={paymentMethod !== m.value ? { color: 'var(--text-secondary)', background: 'var(--bg-tertiary)' } : {}}
-                  >
-                    <m.icon className="w-3.5 h-3.5" />
-                    {m.label}
-                  </button>
-                ))}
+                ].map(m => {
+                  const isDisabled = isOffline && m.value !== 'CASH'
+                  return (
+                    <button
+                      key={m.value}
+                      onClick={() => !isDisabled && setPaymentMethod(m.value)}
+                      disabled={isDisabled}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all ${
+                        isDisabled ? 'opacity-50 cursor-not-allowed' :
+                        paymentMethod === m.value
+                          ? 'bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/30'
+                          : 'hover:bg-white/5'
+                      }`}
+                      style={isDisabled ? { background: 'var(--bg-tertiary)', color: 'var(--text-muted)' } : paymentMethod !== m.value ? { color: 'var(--text-secondary)', background: 'var(--bg-tertiary)' } : {}}
+                    >
+                      <m.icon className="w-3.5 h-3.5" />
+                      {m.label}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 

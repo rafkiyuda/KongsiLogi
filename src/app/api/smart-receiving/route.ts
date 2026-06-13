@@ -165,11 +165,13 @@ export async function POST(request: Request) {
         if (t.status === 'DECOMMISSIONED') return NextResponse.json({ error: `Tag ${t.tagCode} tidak aktif` }, { status: 400 })
       }
 
-      // Validate matching SKU prefixes
-      const prefix = tagCodes[0].split('-')[0]
-      for (const code of tagCodes) {
-        if (code.split('-')[0] !== prefix) {
-          return NextResponse.json({ error: 'Tag yang discan harus dari SKU (Product) yang sama' }, { status: 400 })
+      // Validate matching SKU prefixes (only if tags use SKU- prefix format)
+      if (tagCodes[0].includes('-')) {
+        const prefix = tagCodes[0].split('-')[0]
+        for (const code of tagCodes) {
+          if (code.split('-')[0] !== prefix) {
+            return NextResponse.json({ error: 'Tag yang discan harus dari SKU (Product) yang sama' }, { status: 400 })
+          }
         }
       }
 

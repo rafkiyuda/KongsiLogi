@@ -20,7 +20,10 @@ export async function GET(request: Request) {
             remainingQuantity: { gt: 0 },
             ...(status && { status: status as any }),
           },
-          include: { supplier: { select: { name: true } } },
+          include: { 
+            supplier: { select: { name: true } },
+            rfidTags: { select: { tagCode: true } }
+          },
           orderBy: { receivedDate: 'asc' }, // FIFO
         },
       },
@@ -40,6 +43,8 @@ export async function GET(request: Request) {
         ? Math.ceil((new Date(nearestExpiry.expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
         : null
 
+      const rfidTags = product.inventoryBatches.flatMap(b => b.rfidTags.map(tag => tag.tagCode))
+
       return {
         ...product,
         totalRemaining,
@@ -47,6 +52,7 @@ export async function GET(request: Request) {
         batchCount: product.inventoryBatches.length,
         nearestExpiry: nearestExpiry?.expiryDate || null,
         daysUntilExpiry,
+        rfidTags,
       }
     })
 

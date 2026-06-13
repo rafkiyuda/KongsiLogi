@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import {
   Radio, ScanLine, Package, MapPin, Activity, Loader2,
   CheckCircle2, AlertTriangle, XCircle, RefreshCw, ArrowRight,
@@ -91,13 +91,45 @@ export default function SmartReceivingPage() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
+  // ── Global Scanner Listener ───────────────────────────────────────────
+  const barcodeBuffer = useRef('')
+  const lastKeyTime = useRef(0)
+  
+  // We need a stable ref to handleScan to avoid stale closures in event listener
+  const handleScanRef = useRef<any>(null)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const currentTime = Date.now()
+      if (currentTime - lastKeyTime.current > 50) barcodeBuffer.current = ''
+      lastKeyTime.current = currentTime
+      
+      if (e.key === 'Enter') {
+        if (barcodeBuffer.current.length > 5 && activeTab === 'receiving') {
+          const scannedCode = barcodeBuffer.current
+          if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) {
+             e.target.blur()
+          }
+          if (handleScanRef.current) {
+            handleScanRef.current(false, scannedCode)
+          }
+        }
+        barcodeBuffer.current = ''
+      } else if (e.key.length === 1) {
+        barcodeBuffer.current += e.key
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [activeTab])
+
   // ── Simulate Scan ────────────────────────────────────────────────────
-  const handleScan = async (isBulk = false) => {
+  const handleScan = async (isBulk = false, physicalTag?: string) => {
     setScanning(true)
     setReceiveResult(null)
 
-    // Simulating reading delay
-    await new Promise(r => setTimeout(r, 800))
+    // Simulating reading delay (skip if physical scan since it's instant)
+    if (!physicalTag) await new Promise(r => setTimeout(r, 800))
 
     try {
       if (isBulk) {
@@ -122,7 +154,7 @@ export default function SmartReceivingPage() {
           }
         }
       } else {
-        const tagToScan = tagInput || rfidTags.find(t => t.status === 'AVAILABLE')?.tagCode
+        const tagToScan = physicalTag || tagInput || rfidTags.find(t => t.status === 'AVAILABLE')?.tagCode
         if (!tagToScan) { setScanning(false); return }
 
         if (scannedTags.some(t => t.tagCode === tagToScan)) {
@@ -131,11 +163,14 @@ export default function SmartReceivingPage() {
         }
 
         if (scannedTags.length > 0) {
-          const firstPrefix = scannedTags[0].tagCode.split('-')[0]
-          const currentPrefix = tagToScan.split('-')[0]
-          if (currentPrefix !== firstPrefix) {
-            alert(`Error: Tag ${tagToScan} berbeda SKU dengan tag sebelumnya (${firstPrefix})! Harus 1 SKU per batch.`)
-            setScanning(false); return
+          const firstTag = scannedTags[0].tagCode
+          if (firstTag.includes('-') && tagToScan.includes('-')) {
+            const firstPrefix = firstTag.split('-')[0]
+            const currentPrefix = tagToScan.split('-')[0]
+            if (currentPrefix !== firstPrefix) {
+              alert(`Error: Tag ${tagToScan} berbeda SKU dengan tag sebelumnya (${firstPrefix})! Harus 1 SKU per batch.`)
+              setScanning(false); return
+            }
           }
         }
 
@@ -157,6 +192,11 @@ export default function SmartReceivingPage() {
     } catch (e) { console.error(e) }
     finally { setScanning(false) }
   }
+
+  // Assign handleScan to ref so event listener always uses the latest version
+  useEffect(() => {
+    handleScanRef.current = handleScan
+  }, [handleScan])
 
   // ── Receive Batch ────────────────────────────────────────────────────
   const handleReceive = async () => {

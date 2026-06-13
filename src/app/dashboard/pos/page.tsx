@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import {
   ShoppingCart, Plus, Minus, Trash2, CreditCard, Loader2,
-  Package, Search, FileText, ArrowLeft, Receipt, Check, Banknote, WifiOff
+  Package, Search, FileText, ArrowLeft, Receipt, Check, Banknote, WifiOff, Zap
 } from 'lucide-react'
 
 // Declare Midtrans Snap global
@@ -84,6 +84,7 @@ export default function POSPage() {
   const [isOffline, setIsOffline] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [offlineQueueCount, setOfflineQueueCount] = useState(0)
+  const [aiRecs, setAiRecs] = useState<Array<{productId: string; ai: {urgency: string; recommendation: string; action: string}; stats: {daysOfStock: number | null; avgDailySales: number; salesTrend: string}}>>([])
 
   const checkQueue = async () => {
     try {
@@ -174,6 +175,14 @@ export default function POSPage() {
       }
     }
     loadProducts()
+
+    // Lazy-load AI recommendations (non-blocking)
+    if (navigator.onLine) {
+      fetch('/api/ai/product-recommendation')
+        .then(r => r.json())
+        .then(d => { if (d.success) setAiRecs(d.recommendations) })
+        .catch(() => {})
+    }
   }, [])
 
   // Global Keydown Listener for USB RFID Scanner
@@ -473,6 +482,24 @@ export default function POSPage() {
                     ×{inCart.quantity}
                   </div>
                 )}
+                {/* AI Insight Mini Badge */}
+                {(() => {
+                  const rec = aiRecs.find(r => r.productId === product.id)
+                  if (!rec) return null
+                  const urgencyStyles: Record<string, { bg: string; text: string; icon: string }> = {
+                    kritis: { bg: 'bg-red-100 dark:bg-red-900/40', text: 'text-red-700 dark:text-red-300', icon: '🔴' },
+                    tinggi: { bg: 'bg-orange-100 dark:bg-orange-900/40', text: 'text-orange-700 dark:text-orange-300', icon: '🟠' },
+                    sedang: { bg: 'bg-amber-100 dark:bg-amber-900/40', text: 'text-amber-700 dark:text-amber-300', icon: '🟡' },
+                    rendah: { bg: 'bg-emerald-100 dark:bg-emerald-900/40', text: 'text-emerald-700 dark:text-emerald-300', icon: '🟢' },
+                  }
+                  const s = urgencyStyles[rec.ai.urgency] || urgencyStyles.rendah
+                  return (
+                    <div className={`mt-1.5 flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium ${s.bg} ${s.text}`}>
+                      <Zap className="w-2.5 h-2.5" />
+                      <span>{s.icon} {rec.stats.daysOfStock !== null ? `~${rec.stats.daysOfStock}d stok` : rec.ai.urgency}</span>
+                    </div>
+                  )
+                })()}
               </button>
             )
           })}

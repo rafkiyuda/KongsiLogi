@@ -124,7 +124,13 @@ export async function POST(request: Request) {
       }
 
       // Infer product from tag prefix (e.g., BAY-TAG-0001 -> BAY -> Bayam)
-      const skuPrefix = tagCode.split('-')[0]
+      let skuPrefix = tagCode.split('-')[0]
+      
+      // Hardcode mapping untuk 2 ID fisik kartu agar otomatis terdeteksi sebagai Tomat
+      if (tagCode === '0008461465' || tagCode === '0008634628') {
+        skuPrefix = 'TOM'
+      }
+
       const skuMapReverse: Record<string, string> = {
         'BAY': 'Bayam', 'KAN': 'Kangkung', 'SAW': 'Sawi Putih', 'SEL': 'Selada',
         'CBM': 'Cabai Merah', 'CBR': 'Cabai Rawit', 'TOM': 'Tomat', 'WOR': 'Wortel',

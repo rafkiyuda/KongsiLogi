@@ -33,17 +33,8 @@ Return ONLY a valid JSON array of objects with the exact keys: "supplierId" (str
 Data:
 ${JSON.stringify(data, null, 2)}
 `
-    } else if (action === 'demand_forecasting') {
-      prompt = `
-You are an expert AI inventory analyst.
-Given the following list of products and their current stock levels vs minimum required stock, determine the restock urgency level ('Rendah', 'Sedang', 'Tinggi', 'Kritis') and a brief recommendation action.
-Return ONLY a valid JSON array of objects with the exact keys: "productId" (string), "urgencyLevel" (string), and "recommendation" (string, in Indonesian).
-
-Data:
-${JSON.stringify(data, null, 2)}
-`
     } else {
-      return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid action. Use /api/ai/product-recommendation for demand analysis.' }, { status: 400 })
     }
 
     const result = await model.generateContent(prompt)

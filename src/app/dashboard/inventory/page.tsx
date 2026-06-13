@@ -1,12 +1,19 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Search, Plus, Package, Timer, Loader2, Sparkles, X, TrendingDown } from 'lucide-react'
+import { Search, Plus, Package, Timer, Loader2, Sparkles, X, TrendingUp, TrendingDown, Minus, Zap, Brain } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatCurrency, getDaysUntilExpiry, getExpiryStatus, statusColors, statusLabels } from '@/lib/utils'
 import { PRODUCT_CATEGORIES } from '@/lib/constants'
-import type { DemandForecastResult, EnrichedProduct } from '@/types'
+import type { EnrichedProduct, ProductRecommendation } from '@/types'
+
+const urgencyConfig = {
+  kritis: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-400', border: 'border-red-200 dark:border-red-800', dot: 'bg-red-500', label: 'Kritis', icon: '🔴' },
+  tinggi: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-400', border: 'border-orange-200 dark:border-orange-800', dot: 'bg-orange-500', label: 'Tinggi', icon: '🟠' },
+  sedang: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', border: 'border-amber-200 dark:border-amber-800', dot: 'bg-amber-500', label: 'Sedang', icon: '🟡' },
+  rendah: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800', dot: 'bg-emerald-500', label: 'Aman', icon: '🟢' },
+}
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<EnrichedProduct[]>([])
@@ -15,43 +22,11 @@ export default function InventoryPage() {
   const [category, setCategory] = useState('')
   const [selectedProduct, setSelectedProduct] = useState<EnrichedProduct | null>(null)
 
-  const [aiRecommendations, setAiRecommendations] = useState<DemandForecastResult[]>([])
+  // AI Recommendation state
+  const [aiRecs, setAiRecs] = useState<ProductRecommendation[]>([])
   const [aiLoading, setAiLoading] = useState(false)
-  const [showAiModal, setShowAiModal] = useState(false)
-
-  const handleGetDemandForecasting = async () => {
-    setAiLoading(true)
-    setShowAiModal(true)
-    try {
-      const lowStockProducts = products.filter(p => p.stockStatus === 'critical' || p.stockStatus === 'attention').map(p => ({
-        productId: p.id,
-        productName: p.name,
-        category: p.category,
-        remainingStock: p.totalRemaining,
-        minimumStock: p.minimumStock
-      }))
-
-      if (lowStockProducts.length === 0) {
-        setAiRecommendations([])
-        setAiLoading(false)
-        return
-      }
-
-      const res = await fetch('/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'demand_forecasting', data: lowStockProducts })
-      })
-      const data = await res.json()
-      if (data.success) {
-        setAiRecommendations(data.result)
-      }
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setAiLoading(false)
-    }
-  }
+  const [aiLoaded, setAiLoaded] = useState(false)
+  const [expandedAi, setExpandedAi] = useState<string | null>(null)
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -77,9 +52,33 @@ export default function InventoryPage() {
     fetchProducts()
   }, [fetchProducts])
 
+  const handleFetchAiInsights = async () => {
+    setAiLoading(true)
+    try {
+      const res = await fetch('/api/ai/product-recommendation')
+      const data = await res.json()
+      if (data.success) {
+        setAiRecs(data.recommendations)
+        setAiLoaded(true)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
+  const getRecForProduct = (productId: string) => aiRecs.find(r => r.productId === productId)
+
   const getStatusStyle = (status: string) => {
     const colors = statusColors[status as keyof typeof statusColors] || statusColors.safe
     return colors
+  }
+
+  const TrendIcon = ({ trend, percent }: { trend: string; percent: number }) => {
+    if (trend === 'naik') return <span className="inline-flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400"><TrendingUp className="w-3 h-3" />+{percent}%</span>
+    if (trend === 'turun') return <span className="inline-flex items-center gap-0.5 text-red-600 dark:text-red-400"><TrendingDown className="w-3 h-3" />{percent}%</span>
+    return <span className="inline-flex items-center gap-0.5 text-slate-500"><Minus className="w-3 h-3" />Stabil</span>
   }
 
   return (
@@ -93,12 +92,17 @@ export default function InventoryPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button 
-            onClick={handleGetDemandForecasting}
-            className="btn-primary flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white border-0 shadow-lg shadow-teal-500/30"
+          <button
+            onClick={handleFetchAiInsights}
+            disabled={aiLoading}
+            className="btn-primary flex items-center gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white border-0 shadow-lg shadow-violet-500/30 disabled:opacity-60"
           >
-            <Sparkles className="w-4 h-4" />
-            <span className="hidden sm:inline">Demand Forecasting AI</span>
+            {aiLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Brain className="w-4 h-4" />
+            )}
+            <span className="hidden sm:inline">{aiLoading ? 'Menganalisis...' : aiLoaded ? '✓ AI Insights' : '✨ AI Insights'}</span>
           </button>
           <Link href="/dashboard/inventory/add" className="btn-primary flex items-center gap-2 bg-[var(--accent-primary)]">
             <Plus className="w-4 h-4" />
@@ -106,6 +110,29 @@ export default function InventoryPage() {
           </Link>
         </div>
       </div>
+
+      {/* AI Summary Banner */}
+      {aiLoaded && !aiLoading && (
+        <div className="p-4 rounded-2xl border bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-violet-200 dark:border-violet-800 animate-fade-in">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+            <span className="text-sm font-semibold text-violet-700 dark:text-violet-300">AI Insights Aktif</span>
+            <span className="text-xs text-violet-500 dark:text-violet-400 ml-auto">Berdasarkan 30 hari data penjualan</span>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {(['kritis', 'tinggi', 'sedang', 'rendah'] as const).map(level => {
+              const count = aiRecs.filter(r => r.ai.urgency === level).length
+              if (count === 0) return null
+              const cfg = urgencyConfig[level]
+              return (
+                <span key={level} className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.text} border ${cfg.border}`}>
+                  {cfg.icon} {count} {cfg.label}
+                </span>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
 
       {/* Search & Filter */}
@@ -147,6 +174,8 @@ export default function InventoryPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {products.map((product, idx) => {
             const sc = getStatusStyle(product.stockStatus)
+            const rec = getRecForProduct(product.id)
+            const isAiExpanded = expandedAi === product.id
             return (
               <div
                 key={product.id}
@@ -195,6 +224,49 @@ export default function InventoryPage() {
                     {formatCurrency(product.sellingPrice)}/{product.unit}
                   </p>
                 </div>
+
+                {/* AI Recommendation Badge */}
+                {rec && (
+                  <div
+                    className={`mt-3 p-2.5 rounded-xl border transition-all ${urgencyConfig[rec.ai.urgency].bg} ${urgencyConfig[rec.ai.urgency].border}`}
+                    onClick={(e) => { e.stopPropagation(); setExpandedAi(isAiExpanded ? null : product.id) }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Zap className={`w-3.5 h-3.5 ${urgencyConfig[rec.ai.urgency].text}`} />
+                        <span className={`text-xs font-semibold ${urgencyConfig[rec.ai.urgency].text}`}>
+                          {urgencyConfig[rec.ai.urgency].icon} {urgencyConfig[rec.ai.urgency].label}
+                        </span>
+                      </div>
+                      {rec.stats.daysOfStock !== null && (
+                        <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                          ~{rec.stats.daysOfStock}d stok
+                        </span>
+                      )}
+                    </div>
+                    {isAiExpanded && (
+                      <div className="mt-2 pt-2 border-t border-current/10 animate-fade-in">
+                        <p className={`text-xs leading-relaxed ${urgencyConfig[rec.ai.urgency].text}`}>
+                          {rec.ai.recommendation}
+                        </p>
+                        <div className="mt-2 flex items-center justify-between">
+                          <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                            Jual/hari: {rec.stats.avgDailySales} {product.unit}
+                          </span>
+                          <span className="text-[10px]">
+                            <TrendIcon trend={rec.stats.salesTrend} percent={rec.stats.trendPercent} />
+                          </span>
+                        </div>
+                        <div className="mt-1 text-[10px] text-slate-500 dark:text-slate-400">
+                          📈 Prediksi besok (ES): <strong className="text-slate-700 dark:text-slate-200">{rec.stats.forecastNextDay} {product.unit}</strong>
+                        </div>
+                        <p className="mt-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                          → {rec.ai.action}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Expiry warning */}
                 {product.daysUntilExpiry !== null && product.daysUntilExpiry <= 3 && (
@@ -246,55 +318,20 @@ export default function InventoryPage() {
         </div>
       )}
 
-      {/* AI Modal */}
-      {showAiModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="glass-card w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden shadow-2xl ring-1 ring-teal-500/20">
-            <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border-light)' }}>
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-teal-500" />
-                <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>AI Demand Forecasting</h2>
-              </div>
-              <button onClick={() => setShowAiModal(false)} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                <X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
-              </button>
+      {/* AI Loading Overlay */}
+      {aiLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-4 max-w-sm mx-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-violet-500/20 rounded-full blur-xl animate-pulse"></div>
+              <Brain className="w-12 h-12 text-violet-600 dark:text-violet-400 animate-bounce relative z-10" />
             </div>
-            <div className="p-4 overflow-y-auto flex-1">
-              {aiLoading ? (
-                <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-teal-500/20 rounded-full blur-xl animate-pulse"></div>
-                    <TrendingDown className="w-10 h-10 text-teal-500 animate-bounce relative z-10" />
-                  </div>
-                  <p className="text-sm font-medium animate-pulse" style={{ color: 'var(--text-secondary)' }}>Gemini AI sedang memprediksi kebutuhan restock...</p>
-                </div>
-              ) : aiRecommendations.length > 0 ? (
-                <div className="space-y-4">
-                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Berdasarkan analisis sisa stok dan batas minimum, berikut saran restock otomatis dari AI:</p>
-                  {aiRecommendations.map((rec, i) => (
-                    <div key={i} className="p-4 rounded-xl border flex flex-col gap-2" style={{ background: 'var(--bg-tertiary)', borderColor: 'var(--border-light)' }}>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>ID Produk: {rec.productId}</p>
-                          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{rec.recommendation}</p>
-                        </div>
-                        <div className={`font-bold px-3 py-1 rounded-full text-sm shrink-0 shadow-sm border ${
-                          rec.urgencyLevel.toLowerCase().includes('kritis') ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' :
-                          rec.urgencyLevel.toLowerCase().includes('tinggi') ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800' :
-                          'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
-                        }`}>
-                          {rec.urgencyLevel}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <p style={{ color: 'var(--text-secondary)' }}>Tidak ada produk dengan stok menipis (kritis/perhatian) saat ini. Inventaris terpantau aman.</p>
-                </div>
-              )}
-            </div>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-200 text-center animate-pulse">
+              AI sedang menganalisis 30 hari data penjualan dan stok...
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
+              Powered by Gemini AI
+            </p>
           </div>
         </div>
       )}

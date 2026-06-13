@@ -177,6 +177,34 @@ export interface SmartPricingResult {
 /** Union of all AI result types (used in the API route) */
 export type AiResult = DemandForecastResult | SupplierScoringResult | SmartPricingResult
 
+// --- AI Product Recommendation Types ----------------------------------------
+
+/** Per-product sales statistics computed server-side */
+export interface ProductStats {
+  avgDailySales: number
+  forecastNextDay: number
+  salesTrend: 'naik' | 'turun' | 'stabil'
+  trendPercent: number
+  currentStock: number
+  daysOfStock: number | null  // null if no sales
+  nearestExpiryDays: number | null
+  totalSold7d: number
+  totalSold30d: number
+}
+
+/** Per-product AI recommendation (Gemini-powered) */
+export interface ProductRecommendation {
+  productId: string
+  productName: string
+  category: string
+  stats: ProductStats
+  ai: {
+    urgency: 'kritis' | 'tinggi' | 'sedang' | 'rendah'
+    recommendation: string
+    action: string
+  }
+}
+
 // --- Enriched / API Response Types -------------------------------------------
 
 /** Product enriched with computed stock metrics, returned by GET /api/inventory */

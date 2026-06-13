@@ -159,6 +159,13 @@ export default function POSPage() {
           return
         }
 
+        if (snapData.token.startsWith('sandbox-dummy-token')) {
+          alert('API Key Midtrans belum dikonfigurasi. Menggunakan mode dummy dan mengalihkan ke simulator.');
+          window.open(snapData.redirect_url, '_blank');
+          finalizeOrder();
+          return;
+        }
+
         // Open Snap Popup
         window.snap.pay(snapData.token, {
           onSuccess: function(result: any) {
